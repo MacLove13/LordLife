@@ -596,6 +596,21 @@ namespace Bannerlord.LordLife.Dialogues
             // Select a random response
             if (dialogue.Responses.Count > 0)
             {
+                // SPECIAL CASE: Trade routes dialogue with rumor chance
+                if (dialogue.Id == "basic_trade_routes")
+                {
+                    // 30% chance to get a trade rumor
+                    var tradeRumor = TradeRumorHelper.GetTradeRumor(0.3f);
+                    
+                    if (!string.IsNullOrEmpty(tradeRumor))
+                    {
+                        // Use the rumor as response
+                        MBTextManager.SetTextVariable("LORDLIFE_NPC_RESPONSE", tradeRumor);
+                        _selectedResponseIndex = 0;  // Track for relationship change (use first response's relationship change)
+                        return;
+                    }
+                }
+
                 _selectedResponseIndex = MBRandom.RandomInt(dialogue.Responses.Count);
                 var response = dialogue.Responses[_selectedResponseIndex];
 
