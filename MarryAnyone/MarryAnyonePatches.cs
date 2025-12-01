@@ -34,53 +34,6 @@ namespace Bannerlord.LordLife.MarryAnyone
         }
 
         /// <summary>
-        /// Patches to allow marriage with companions.
-        /// </summary>
-        [HarmonyPatch(typeof(Romance), nameof(Romance.MarriageCourtshipPossibility))]
-        [HarmonyPostfix]
-        public static void MarriageCourtshipPossibilityPostfix(Hero person1, Hero person2, ref bool __result)
-        {
-            if (person1 == null || person2 == null)
-            {
-                return;
-            }
-
-            bool involvesPlayer = person1 == Hero.MainHero || person2 == Hero.MainHero;
-            Hero otherHero = person1 == Hero.MainHero ? person2 : person1;
-
-            // If the player is involved and the other hero is of opposite sex
-            if (involvesPlayer && person1.IsFemale != person2.IsFemale)
-            {
-                // Check if marriage is already the case
-                if (otherHero.Spouse != null)
-                {
-                    __result = false;
-                    return;
-                }
-
-                if (Hero.MainHero.Spouse != null)
-                {
-                    __result = false;
-                    return;
-                }
-
-                // Check if both are alive
-                if (!otherHero.IsAlive || !Hero.MainHero.IsAlive)
-                {
-                    __result = false;
-                    return;
-                }
-
-                // Allow courtship with lords, companions, and notables
-                if (otherHero.IsLord || otherHero.IsWanderer || otherHero.IsNotable)
-                {
-                    __result = true;
-                    Debug.Print($"[LordLife:MarryAnyone] Marriage courtship allowed between {person1.Name} and {person2.Name}");
-                }
-            }
-        }
-
-        /// <summary>
         /// Patches RomanceCampaignBehavior to allow romance initiation with more characters.
         /// </summary>
         [HarmonyPatch(typeof(RomanceCampaignBehavior), "conversation_player_can_open_courtship_on_condition")]
