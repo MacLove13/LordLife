@@ -53,8 +53,8 @@ namespace Bannerlord.LordLife.Dialogues
             CampaignEvents.OnSessionLaunchedEvent.AddNonSerializedListener(this, OnSessionLaunched);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, OnDailyTick);
             CampaignEvents.HeroKilledEvent.AddNonSerializedListener(this, OnHeroKilled);
-            CampaignEvents.WarDeclaredEvent.AddNonSerializedListener(this, OnWarDeclared);
-            CampaignEvents.MakePeaceEvent.AddNonSerializedListener(this, OnPeaceMade);
+            CampaignEvents.WarDeclared.AddNonSerializedListener(this, OnWarDeclared);
+            CampaignEvents.MakePeace.AddNonSerializedListener(this, OnPeaceMade);
         }
 
         public override void SyncData(IDataStore dataStore)
@@ -205,7 +205,7 @@ namespace Bannerlord.LordLife.Dialogues
         /// </summary>
         private void CleanupExpiredCooldowns()
         {
-            float currentDay = CampaignTime.Now.ToDays;
+            float currentDay = (float)CampaignTime.Now.ToDays;
 
             // Collect keys to remove to avoid modifying collection during iteration
             var heroKeysToRemove = new List<string>();
@@ -367,7 +367,7 @@ namespace Bannerlord.LordLife.Dialogues
         private bool CanShowBasicDialogue(Hero hero, DialogueEntry dialogue)
         {
             string heroId = GetHeroId(hero);
-            float currentDay = CampaignTime.Now.ToDays;
+            float currentDay = (float)CampaignTime.Now.ToDays;
 
             if (_dialogueCooldowns.TryGetValue(heroId, out var heroCooldowns))
             {
@@ -574,7 +574,7 @@ namespace Bannerlord.LordLife.Dialogues
             {
                 case DialogueType.Basic:
                 case DialogueType.Relationship:
-                    cooldown.UnlocksAtDay = CampaignTime.Now.ToDays + dialogue.CooldownDays;
+                    cooldown.UnlocksAtDay = (float)CampaignTime.Now.ToDays + dialogue.CooldownDays;
                     Debug.Print($"[LordLife:Dialogues] Dialogue '{dialogue.Id}' with {hero.Name} on cooldown until day {cooldown.UnlocksAtDay}");
                     break;
 

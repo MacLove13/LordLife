@@ -36,7 +36,7 @@ namespace Bannerlord.LordLife.MarryAnyone
         /// <summary>
         /// Patches to allow marriage with companions.
         /// </summary>
-        [HarmonyPatch(typeof(Romance), nameof(Romance.MarriageCourtshipPossibility))]
+        /*[HarmonyPatch(typeof(Romance), nameof(Romance.MarriageCourtshipPossibility))]
         [HarmonyPostfix]
         public static void MarriageCourtshipPossibilityPostfix(Hero person1, Hero person2, ref bool __result)
         {
@@ -78,7 +78,7 @@ namespace Bannerlord.LordLife.MarryAnyone
                     Debug.Print($"[LordLife:MarryAnyone] Marriage courtship allowed between {person1.Name} and {person2.Name}");
                 }
             }
-        }
+        }*/
 
         /// <summary>
         /// Patches RomanceCampaignBehavior to allow romance initiation with more characters.
