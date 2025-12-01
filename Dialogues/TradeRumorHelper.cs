@@ -22,7 +22,7 @@ namespace Bannerlord.LordLife.Dialogues
         /// <returns>A trade rumor string in Portuguese, or null if no rumor should be shown.</returns>
         public static string? GetTradeRumor(float chanceToShowRumor = 0.3f)
         {
-            // Random chance to show rumor
+            // Random roll: if the roll is >= threshold, don't show rumor (e.g., 0.3 = 30% chance to show)
             if (MBRandom.RandomFloat >= chanceToShowRumor)
                 return null;
 
