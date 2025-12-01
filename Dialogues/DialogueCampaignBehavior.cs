@@ -26,7 +26,9 @@ namespace Bannerlord.LordLife.Dialogues
 
         // Tracks active wars for war dialogue reset logic
         // [KingdomId] = List of enemy kingdom IDs
-        private Dictionary<string, HashSet<string>> _activeWars;
+        // Note: Using List instead of HashSet for compatibility with TaleWorlds.SaveSystem.
+        // Uniqueness is maintained manually via Contains() checks before adding.
+        private Dictionary<string, List<string>> _activeWars;
 
         // Current dialogue being used (for consequence methods)
         private DialogueEntry? _currentDialogue;
@@ -44,7 +46,7 @@ namespace Bannerlord.LordLife.Dialogues
         {
             _dialogueCooldowns = new Dictionary<string, Dictionary<string, DialogueCooldownEntry>>();
             _deceasedRelatives = new Dictionary<string, List<string>>();
-            _activeWars = new Dictionary<string, HashSet<string>>();
+            _activeWars = new Dictionary<string, List<string>>();
             _selectedResponseIndex = -1;
         }
 
@@ -66,7 +68,7 @@ namespace Bannerlord.LordLife.Dialogues
             // Ensure dictionaries are initialized after loading
             _dialogueCooldowns ??= new Dictionary<string, Dictionary<string, DialogueCooldownEntry>>();
             _deceasedRelatives ??= new Dictionary<string, List<string>>();
-            _activeWars ??= new Dictionary<string, HashSet<string>>();
+            _activeWars ??= new Dictionary<string, List<string>>();
         }
 
         private void OnSessionLaunched(CampaignGameStarter campaignGameStarter)
@@ -170,7 +172,7 @@ namespace Bannerlord.LordLife.Dialogues
                 if (kingdom == null) continue;
 
                 string kingdomId = kingdom.StringId;
-                _activeWars[kingdomId] = new HashSet<string>();
+                _activeWars[kingdomId] = new List<string>();
 
                 // Check each other kingdom to see if at war
                 foreach (var otherKingdom in Kingdom.All)
