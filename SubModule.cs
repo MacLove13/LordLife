@@ -37,7 +37,6 @@ namespace Bannerlord.LordLife
         {
             base.OnGameStart(game, gameStarterObject);
 
-            // Works with both Campaign (Story Mode) and Sandbox modes
             if (gameStarterObject is CampaignGameStarter campaignGameStarter)
             {
                 // Add MarryAnyone campaign behavior

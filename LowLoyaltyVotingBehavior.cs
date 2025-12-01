@@ -1,11 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using TaleWorlds.CampaignSystem;
-using TaleWorlds.CampaignSystem.Actions;
 using TaleWorlds.CampaignSystem.Election;
 using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.Library;
-using TaleWorlds.Localization;
 
 namespace Bannerlord.LordLife
 {
@@ -107,16 +105,12 @@ namespace Bannerlord.LordLife
 
         /// <summary>
         /// Gets the loyalty value for a settlement.
+        /// Both towns and castles use the Town component for loyalty.
         /// </summary>
         private float GetSettlementLoyalty(Settlement settlement)
         {
-            if (settlement.IsTown && settlement.Town != null)
+            if (settlement.Town != null)
             {
-                return settlement.Town.Loyalty;
-            }
-            else if (settlement.IsCastle && settlement.Town != null)
-            {
-                // Castles also use Town component for loyalty
                 return settlement.Town.Loyalty;
             }
             return 100f; // Default high value if not applicable
@@ -161,7 +155,7 @@ namespace Bannerlord.LordLife
         /// </summary>
         private void CreateSettlementClaimantDecision(Kingdom kingdom, Settlement settlement)
         {
-            // Get potential claimants (clan leaders of the kingdom)
+            // Get potential claimants (clans of the kingdom)
             var potentialClaimants = GetPotentialClaimants(kingdom, settlement);
 
             if (potentialClaimants.Count == 0)
@@ -171,13 +165,18 @@ namespace Bannerlord.LordLife
                 return;
             }
 
+            // Get the initial claimant (first eligible clan)
+            // Bannerlord's SettlementClaimantDecision will allow all eligible clans to be considered during voting
+            Clan initialClaimant = potentialClaimants.First();
+
             // Create a SettlementClaimantDecision
             // This is Bannerlord's built-in decision type for distributing fiefs
+            // The decision system will automatically generate voting options for all eligible clans
             var decision = new SettlementClaimantDecision(
                 kingdom.RulingClan,
                 settlement,
                 settlement.OwnerClan.Leader,
-                potentialClaimants.FirstOrDefault()
+                initialClaimant
             );
 
             // Add the decision to the kingdom
