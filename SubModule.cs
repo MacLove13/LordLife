@@ -1,5 +1,6 @@
 using Bannerlord.LordLife.Dialogues;
 using Bannerlord.LordLife.MarryAnyone;
+using Bannerlord.LordLife.Workshop;
 using HarmonyLib;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.Core;
@@ -19,6 +20,9 @@ namespace Bannerlord.LordLife
             // Initialize Harmony for MarryAnyone patches
             _harmony = new Harmony("Bannerlord.LordLife");
             _harmony.PatchAll(typeof(MarryAnyonePatches).Assembly);
+
+            // Apply workshop limit patches
+            WorkshopLimitPatches.PatchWorkshopLimit(_harmony);
 
             Debug.Print("[LordLife] SubModule carregado.");
             Debug.Print("[LordLife:MarryAnyone] Patches Harmony aplicados.");
@@ -55,6 +59,10 @@ namespace Bannerlord.LordLife
                 // Add Low Loyalty Voting behavior
                 campaignGameStarter.AddBehavior(new LowLoyaltyVotingBehavior());
                 Debug.Print("[LordLife:LowLoyaltyVoting] CampaignBehavior adicionado.");
+
+                // Add Workshop License behavior
+                campaignGameStarter.AddBehavior(new WorkshopLicenseBehavior());
+                Debug.Print("[LordLife:Workshop] WorkshopLicenseBehavior registrado.");
             }
         }
 
