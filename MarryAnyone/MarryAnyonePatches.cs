@@ -105,5 +105,59 @@ namespace Bannerlord.LordLife.MarryAnyone
                 }
             }
         }
+
+        /// <summary>
+        /// Patches RomanceCampaignBehavior.conversation_romance_blocked_on_condition to prevent NullReferenceException.
+        /// This method checks if romance should be blocked, but it doesn't handle null references properly
+        /// for companions, notables, and other character types that may not have all the expected properties.
+        /// We use a prefix patch to intercept the call and handle these cases safely.
+        /// </summary>
+        [HarmonyPatch(typeof(RomanceCampaignBehavior), "conversation_romance_blocked_on_condition")]
+        [HarmonyPrefix]
+        public static bool ConversationRomanceBlockedPrefix(ref bool __result)
+        {
+            try
+            {
+                Hero conversationHero = Hero.OneToOneConversationHero;
+                Hero mainHero = Hero.MainHero;
+
+                // Basic null checks to prevent NullReferenceException
+                if (conversationHero == null || mainHero == null)
+                {
+                    __result = true; // Block romance if either hero is null
+                    return false; // Skip original method
+                }
+
+                // Check if the hero is one of our supported types for romance
+                if (conversationHero.IsLord || conversationHero.IsWanderer || conversationHero.IsNotable)
+                {
+                    // Check if romance is possible using our helper
+                    if (!MarryAnyoneRomanceHelper.CanRomance(conversationHero))
+                    {
+                        __result = true; // Block romance
+                        return false; // Skip original method
+                    }
+                    
+                    // For lords, wanderers (companions), and notables, they may not have a Clan property
+                    // The vanilla method expects Clan to exist, which causes NullReferenceException
+                    // We safely allow romance for these character types even without a clan
+                    __result = false; // Don't block romance
+                    Debug.Print($"[LordLife:MarryAnyone] Romance not blocked for {conversationHero.Name ?? "Unknown"} (supported character type)");
+                    return false; // Skip original method to prevent NullReferenceException
+                }
+
+                // For all other character types, let the original method run
+                return true; // Run original method
+            }
+            catch (System.Exception ex)
+            {
+                // Safety net: if any unexpected exception occurs, log it and block romance
+                // This should not normally execute if our null checks are complete
+                Debug.Print($"[LordLife:MarryAnyone] Exception in ConversationRomanceBlockedPrefix: {ex.GetType().Name} - {ex.Message}");
+                Debug.Print($"[LordLife:MarryAnyone] Stack trace: {ex.StackTrace}");
+                __result = true; // Block romance on error as a safe fallback
+                return false; // Skip original method
+            }
+        }
     }
 }
