@@ -1,4 +1,5 @@
-﻿using Bannerlord.LordLife.MarryAnyone;
+﻿using Bannerlord.LordLife.Dialogues;
+using Bannerlord.LordLife.MarryAnyone;
 using HarmonyLib;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.Library;
@@ -41,6 +42,10 @@ namespace Bannerlord.LordLife
                 // Add MarryAnyone campaign behavior
                 campaignGameStarter.AddBehavior(new MarryAnyoneCampaignBehavior());
                 Debug.Print("[LordLife:MarryAnyone] CampaignBehavior adicionado.");
+
+                // Add Dialogues campaign behavior
+                campaignGameStarter.AddBehavior(new DialogueCampaignBehavior());
+                Debug.Print("[LordLife:Dialogues] CampaignBehavior adicionado.");
             }
         }
 
