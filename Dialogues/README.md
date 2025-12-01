@@ -112,9 +112,12 @@ dotnet build -c Release
 
 ## Variações de Respostas
 
-Cada diálogo pode ter **1 a 3 variações de respostas**. 
+Cada diálogo pode ter **qualquer quantidade de variações de respostas**, mas **é fortemente recomendado usar exatamente 3 respostas** para manter a consistência com os diálogos existentes e tornar as conversas mais dinâmicas e imprevisíveis.
 
-**Recomendação forte: sempre use 3 respostas** para manter a consistência e tornar as conversas mais dinâmicas e imprevisíveis.
+**Por que 3 respostas?**
+- Oferece variedade suficiente sem sobrecarregar o sistema
+- Mantém consistência com todo o sistema de diálogos existente
+- Permite criar respostas com diferentes tons e impactos no relacionamento
 
 ### Como Funciona
 
@@ -157,14 +160,16 @@ responses: new List<DialogueResponse>
 
 ### Níveis de Relacionamento
 
-O relacionamento no Bannerlord vai de **-100 a +100**:
+O relacionamento no Bannerlord vai de **-100 a +100**. Aqui estão alguns pontos de referência úteis:
 
-| Nível | Descrição |
+| Nível | Descrição Sugerida |
 |-------|-----------|
 | 0-19  | Conhecido |
 | 20-49 | Amigável |
 | 50-79 | Amigo |
 | 80+   | Aliado Próximo |
+
+**Nota:** Estas são categorias sugeridas para organizar seus diálogos. O jogo não possui divisões rígidas desses níveis.
 
 ### Requisito Mínimo (minRelationship)
 
@@ -179,13 +184,18 @@ minRelationship: 80   // Apenas aliados próximos
 
 ### Balanceamento de Ganhos
 
-**Recomendações:**
-- **Diálogos Básicos**: +0 a +2
-- **Diálogos de Relacionamento 20+**: +1 a +3
-- **Diálogos de Relacionamento 50+**: +2 a +4
-- **Diálogos de Relacionamento 80+**: +3 a +5
-- **Diálogos de Guerra**: +1 a +2
-- **Condolências**: +3 a +5
+**Limites máximos recomendados por tipo de diálogo:**
+- **Diálogos Básicos**: +0 a +2 (máximo: +2)
+- **Diálogos de Relacionamento 20+**: +1 a +3 (máximo: +3)
+- **Diálogos de Relacionamento 50+**: +2 a +4 (máximo: +4)
+- **Diálogos de Relacionamento 80+**: +3 a +5 (máximo: +5)
+- **Diálogos de Guerra**: +1 a +2 (máximo: +2)
+- **Condolências**: +3 a +5 (máximo: +5)
+
+**Perdas de relacionamento:**
+- Use com muito cuidado e raramente
+- Máximo recomendado: -3
+- Sempre ofereça contexto claro de por que haveria uma perda
 
 ---
 
@@ -426,7 +436,7 @@ Após adicionar novos diálogos:
 5. Confirme que o relacionamento muda como esperado
 
 ### 9. **Balanceamento**
-- **Não crie diálogos que dão +10 de relacionamento!** Isso quebraria o balanceamento do jogo, permitindo progressão muito rápida e tornando o sistema de relacionamento trivial. Valores altos também são irrealistas para conversas simples.
+- **Não exceda os valores máximos recomendados!** Por exemplo, um diálogo básico dando +10 de relacionamento quebraria o balanceamento do jogo, permitindo progressão muito rápida (em 5 conversas você iria de 0 a 50 de relacionamento). Valores altos também são irrealistas para conversas simples. Siga os máximos listados na seção "Balanceamento de Ganhos".
 - Evite cooldowns muito curtos (< 2 dias) - o jogador poderia explorar isso para ganhar relacionamento muito rapidamente
 - Evite cooldowns muito longos (> 30 dias) para diálogos básicos - isso tornaria o sistema frustrante de usar
 
