@@ -319,7 +319,7 @@ namespace Bannerlord.LordLife.Dialogues
 
         /// <summary>
         /// Called when the main conversation option is selected.
-        /// Sets the NPC name variable for display.
+        /// Sets the NPC name variable for display and resets dialogue state.
         /// </summary>
         private void OnMainConversationSelected()
         {
@@ -328,6 +328,9 @@ namespace Bannerlord.LordLife.Dialogues
             {
                 MBTextManager.SetTextVariable("NPC_NAME", conversationHero.Name);
             }
+            
+            // Reset dialogue state to prevent stale dialogue from triggering
+            _currentDialogue = null;
         }
 
         /// <summary>
