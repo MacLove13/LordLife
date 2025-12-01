@@ -135,7 +135,7 @@ namespace Bannerlord.LordLife
                 priest.ChangeState(Hero.CharacterStates.Active);
                 
                 // Use Occupation.Artisan to prevent appearing in wanderer/tavern lists
-                priest.SetNewOccupation(Occupation.Artisan);
+                priest.SetNewOccupation(Occupation.Special);
                 
                 // Remove from settlement to prevent appearing in default menus
                 // The priest will be added back only when entering the church menu
@@ -180,7 +180,7 @@ namespace Bannerlord.LordLife
                     GameMenu.SwitchToMenu("town_igreja_menu");
                 },
                 false,
-                -3
+                0
             );
 
             // Create the Igreja menu with SettlementWithCharacters overlay to show the priest
