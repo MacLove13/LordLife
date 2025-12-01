@@ -172,11 +172,14 @@ namespace Bannerlord.LordLife.Dialogues
                 string kingdomId = kingdom.StringId;
                 _activeWars[kingdomId] = new HashSet<string>();
 
-                foreach (var enemy in kingdom.Stances)
+                // Check each other kingdom to see if at war
+                foreach (var otherKingdom in Kingdom.All)
                 {
-                    if (enemy.IsAtWar && enemy.Faction2 is Kingdom enemyKingdom)
+                    if (otherKingdom == null || otherKingdom == kingdom) continue;
+
+                    if (kingdom.IsAtWarWith(otherKingdom))
                     {
-                        _activeWars[kingdomId].Add(enemyKingdom.StringId);
+                        _activeWars[kingdomId].Add(otherKingdom.StringId);
                     }
                 }
             }

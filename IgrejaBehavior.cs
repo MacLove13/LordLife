@@ -6,8 +6,6 @@ using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.Core;
 using TaleWorlds.Library;
 using TaleWorlds.ObjectSystem;
-using TaleWorlds.GauntletUI;
-
 namespace Bannerlord.LordLife
 {
     public class IgrejaBehavior : CampaignBehaviorBase
@@ -138,7 +136,7 @@ namespace Bannerlord.LordLife
                         Debug.Print($"[LordLife] Igreja: Padre presente - {priest.Name}");
                     }
                 },
-                GameOverlays.MenuOverlayType.SettlementWithBoth
+                TaleWorlds.CampaignSystem.Overlay.GameOverlays.MenuOverlayType.SettlementWithBoth
             );
 
             // Option 1: Falar com padre
