@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Actions;
@@ -267,12 +268,20 @@ namespace Bannerlord.LordLife.Workshop
 
             private int GetExtraLicenses()
             {
-                if (Campaign.Current?.GetCampaignBehavior<WorkshopLicenseBehavior>() is { } behavior)
+                try
                 {
-                    var clan = Hero.MainHero.Clan;
-                    return WorkshopLicenseManager.Instance.GetExtraLicenses(clan.StringId);
-                    // return behavior.GetExtraLicensesFor(Hero.MainHero);
+                    if (Campaign.Current?.GetCampaignBehavior<WorkshopLicenseBehavior>() is { } behavior)
+                    {
+                        var clan = Hero.MainHero.Clan;
+                        return WorkshopLicenseManager.Instance.GetExtraLicenses(clan.StringId);
+                        // return behavior.GetExtraLicensesFor(Hero.MainHero);
+                    }
                 }
+                catch (Exception ex)
+                {
+                    Debug.Print($"[LordLife:Workshop] Error in GetExtraLicenses: {ex.Message}");
+                }
+
                 return 0;
             }
         }
