@@ -112,12 +112,13 @@ dotnet build -c Release
 
 ## Variações de Respostas
 
-Cada diálogo pode ter **qualquer quantidade de variações de respostas**, mas **é fortemente recomendado usar exatamente 3 respostas** para manter a consistência com os diálogos existentes e tornar as conversas mais dinâmicas e imprevisíveis.
+O sistema tecnicamente suporta qualquer quantidade de variações de respostas, mas **todos os diálogos existentes usam exatamente 3 respostas**. **É fortemente recomendado seguir este padrão estabelecido** de usar 3 respostas para manter a consistência em todo o sistema.
 
-**Por que 3 respostas?**
+**Por que 3 respostas é o padrão estabelecido?**
 - Oferece variedade suficiente sem sobrecarregar o sistema
-- Mantém consistência com todo o sistema de diálogos existente
+- Mantém consistência com todos os diálogos existentes do mod
 - Permite criar respostas com diferentes tons e impactos no relacionamento
+- Facilita manutenção e revisão de diálogos
 
 ### Como Funciona
 
