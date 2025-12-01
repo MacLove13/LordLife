@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Conversation;
 using TaleWorlds.Core;
@@ -12,6 +15,18 @@ namespace Bannerlord.LordLife.MarryAnyone
     /// </summary>
     public class MarryAnyoneCampaignBehavior : CampaignBehaviorBase
     {
+        // Relationship bonus per correct answer during courtship
+        private const int RELATION_BONUS_PER_CORRECT_ANSWER = 5;
+        
+        // Marriage proposal acceptance chance constants
+        private const int BASE_ACCEPTANCE_CHANCE = 50;
+        private const int MAX_RANDOM_VALUE = 100;
+
+        // Track conversation state for courtship questions per hero
+        private Dictionary<Hero, int> _correctAnswersByHero = new Dictionary<Hero, int>();
+
+        // Save data: track heroes who completed courtship
+        private List<Hero> _savedCourtshipCompletedHeroes = new List<Hero>();
         public override void RegisterEvents()
         {
             CampaignEvents.OnSessionLaunchedEvent.AddNonSerializedListener(this, OnSessionLaunched);
@@ -19,7 +34,19 @@ namespace Bannerlord.LordLife.MarryAnyone
 
         public override void SyncData(IDataStore dataStore)
         {
-            // No data to sync
+            // Save/load courtship completed heroes
+            dataStore.SyncData("_marryAnyoneCourtshipCompleted", ref _savedCourtshipCompletedHeroes);
+
+            // After loading, restore the data to the static helper
+            if (dataStore.IsLoading)
+            {
+                MarryAnyoneRomanceHelper.SetCompletedCourtshipHeroes(_savedCourtshipCompletedHeroes);
+            }
+            // Before saving, get the data from the static helper
+            else if (dataStore.IsSaving)
+            {
+                _savedCourtshipCompletedHeroes = MarryAnyoneRomanceHelper.GetCompletedCourtshipHeroes().ToList();
+            }
         }
 
         private void OnSessionLaunched(CampaignGameStarter campaignGameStarter)
@@ -37,7 +64,7 @@ namespace Bannerlord.LordLife.MarryAnyone
                 "marry_anyone_flirt_response",
                 "{=marry_anyone_flirt}Eu gostaria de conhecê-lo(a) melhor...",
                 MarryAnyoneFlirtCondition,
-                null,
+                MarryAnyoneFlirtConsequence,
                 100,
                 null,
                 null);
@@ -53,7 +80,19 @@ namespace Bannerlord.LordLife.MarryAnyone
                 100,
                 null);
 
-            // Option to propose marriage
+            // Option to start courtship questions
+            campaignGameStarter.AddPlayerLine(
+                "marry_anyone_start_courtship",
+                "marry_anyone_flirt_options",
+                "marry_anyone_courtship_questions",
+                "{=marry_anyone_start_courtship}Gostaria de conhecê-lo(a) melhor. Posso fazer algumas perguntas?",
+                MarryAnyoneCourtshipQuestionsCondition,
+                MarryAnyoneStartCourtshipConsequence,
+                100,
+                null,
+                null);
+
+            // Option to propose marriage (only after courtship)
             campaignGameStarter.AddPlayerLine(
                 "marry_anyone_propose",
                 "marry_anyone_flirt_options",
@@ -76,6 +115,9 @@ namespace Bannerlord.LordLife.MarryAnyone
                 100,
                 null,
                 null);
+
+            // === Courtship Questions System ===
+            AddCourtshipQuestionDialogues(campaignGameStarter);
 
             // NPC accepts marriage proposal
             campaignGameStarter.AddDialogLine(
@@ -125,6 +167,186 @@ namespace Bannerlord.LordLife.MarryAnyone
         }
 
         /// <summary>
+        /// Adds courtship question dialogues similar to vanilla game.
+        /// </summary>
+        private void AddCourtshipQuestionDialogues(CampaignGameStarter campaignGameStarter)
+        {
+            // NPC agrees to answer questions
+            campaignGameStarter.AddDialogLine(
+                "marry_anyone_courtship_start",
+                "marry_anyone_courtship_questions",
+                "marry_anyone_question_1",
+                "{=marry_anyone_courtship_start}Claro, pergunte o que quiser. É bom nos conhecermos melhor.",
+                null,
+                null,
+                100,
+                null);
+
+            // Question 1: What do you value most?
+            campaignGameStarter.AddDialogLine(
+                "marry_anyone_question_1",
+                "marry_anyone_question_1",
+                "marry_anyone_answer_1",
+                "{=marry_anyone_question_1}Vou lhe fazer uma pergunta: O que você mais valoriza em um relacionamento?",
+                null,
+                null,
+                100,
+                null);
+
+            // Answer 1a: Honesty
+            campaignGameStarter.AddPlayerLine(
+                "marry_anyone_answer_1a",
+                "marry_anyone_answer_1",
+                "marry_anyone_question_2",
+                "{=marry_anyone_answer_1a}Honestidade acima de tudo.",
+                null,
+                () => MarryAnyoneAnswerConsequence(true),
+                100,
+                null,
+                null);
+
+            // Answer 1b: Loyalty
+            campaignGameStarter.AddPlayerLine(
+                "marry_anyone_answer_1b",
+                "marry_anyone_answer_1",
+                "marry_anyone_question_2",
+                "{=marry_anyone_answer_1b}Lealdade e compromisso.",
+                null,
+                () => MarryAnyoneAnswerConsequence(true),
+                100,
+                null,
+                null);
+
+            // Answer 1c: Wealth
+            campaignGameStarter.AddPlayerLine(
+                "marry_anyone_answer_1c",
+                "marry_anyone_answer_1",
+                "marry_anyone_question_2",
+                "{=marry_anyone_answer_1c}Prosperidade e riqueza.",
+                null,
+                () => MarryAnyoneAnswerConsequence(false),
+                100,
+                null,
+                null);
+
+            // Question 2: How do you handle conflicts?
+            campaignGameStarter.AddDialogLine(
+                "marry_anyone_question_2",
+                "marry_anyone_question_2",
+                "marry_anyone_answer_2",
+                "{=marry_anyone_question_2}Interessante. Outra pergunta: Como você lida com conflitos?",
+                null,
+                null,
+                100,
+                null);
+
+            // Answer 2a: Dialogue
+            campaignGameStarter.AddPlayerLine(
+                "marry_anyone_answer_2a",
+                "marry_anyone_answer_2",
+                "marry_anyone_question_3",
+                "{=marry_anyone_answer_2a}Através do diálogo e compreensão.",
+                null,
+                () => MarryAnyoneAnswerConsequence(true),
+                100,
+                null,
+                null);
+
+            // Answer 2b: Strength
+            campaignGameStarter.AddPlayerLine(
+                "marry_anyone_answer_2b",
+                "marry_anyone_answer_2",
+                "marry_anyone_question_3",
+                "{=marry_anyone_answer_2b}Demonstrando força e determinação.",
+                null,
+                () => MarryAnyoneAnswerConsequence(false),
+                100,
+                null,
+                null);
+
+            // Answer 2c: Compromise
+            campaignGameStarter.AddPlayerLine(
+                "marry_anyone_answer_2c",
+                "marry_anyone_answer_2",
+                "marry_anyone_question_3",
+                "{=marry_anyone_answer_2c}Buscando compromissos justos.",
+                null,
+                () => MarryAnyoneAnswerConsequence(true),
+                100,
+                null,
+                null);
+
+            // Question 3: What are your life goals?
+            campaignGameStarter.AddDialogLine(
+                "marry_anyone_question_3",
+                "marry_anyone_question_3",
+                "marry_anyone_answer_3",
+                "{=marry_anyone_question_3}E por último: Quais são seus objetivos na vida?",
+                null,
+                null,
+                100,
+                null);
+
+            // Answer 3a: Family
+            campaignGameStarter.AddPlayerLine(
+                "marry_anyone_answer_3a",
+                "marry_anyone_answer_3",
+                "marry_anyone_courtship_complete",
+                "{=marry_anyone_answer_3a}Construir uma família forte e unida.",
+                null,
+                () => MarryAnyoneAnswerConsequence(true),
+                100,
+                null,
+                null);
+
+            // Answer 3b: Power
+            campaignGameStarter.AddPlayerLine(
+                "marry_anyone_answer_3b",
+                "marry_anyone_answer_3",
+                "marry_anyone_courtship_complete",
+                "{=marry_anyone_answer_3b}Conquistar poder e domínio.",
+                null,
+                () => MarryAnyoneAnswerConsequence(false),
+                100,
+                null,
+                null);
+
+            // Answer 3c: Honor
+            campaignGameStarter.AddPlayerLine(
+                "marry_anyone_answer_3c",
+                "marry_anyone_answer_3",
+                "marry_anyone_courtship_complete",
+                "{=marry_anyone_answer_3c}Viver com honra e deixar um legado.",
+                null,
+                () => MarryAnyoneAnswerConsequence(true),
+                100,
+                null,
+                null);
+
+            // Courtship completion - positive outcome
+            campaignGameStarter.AddDialogLine(
+                "marry_anyone_courtship_complete_positive",
+                "marry_anyone_courtship_complete",
+                "hero_main_options",
+                "{=marry_anyone_courtship_complete_positive}Suas respostas me agradaram. Acho que somos compatíveis. Talvez possamos falar mais sobre o futuro...",
+                () => GetCorrectAnswersCount(Hero.OneToOneConversationHero) >= 2,
+                MarryAnyoneCourtshipCompleteConsequence,
+                100,
+                null);
+
+            // Courtship completion - negative outcome
+            campaignGameStarter.AddDialogLine(
+                "marry_anyone_courtship_complete_negative",
+                "marry_anyone_courtship_complete",
+                "hero_main_options",
+                "{=marry_anyone_courtship_complete_negative}Hmm... parece que temos visões diferentes. Talvez devêssemos nos conhecer melhor com o tempo.",
+                () => GetCorrectAnswersCount(Hero.OneToOneConversationHero) < 2,
+                null,
+                99,
+                null);
+        }
+
+        /// <summary>
         /// Condition for the flirtation dialogue option.
         /// </summary>
         private bool MarryAnyoneFlirtCondition()
@@ -134,7 +356,98 @@ namespace Bannerlord.LordLife.MarryAnyone
         }
 
         /// <summary>
+        /// Consequence for starting flirtation - increases romance level.
+        /// </summary>
+        private void MarryAnyoneFlirtConsequence()
+        {
+            Hero conversationHero = Hero.OneToOneConversationHero;
+            if (conversationHero != null)
+            {
+                MarryAnyoneRomanceHelper.IncreaseRomanceLevel(conversationHero);
+            }
+        }
+
+        /// <summary>
+        /// Condition for courtship questions - only if not yet completed.
+        /// </summary>
+        private bool MarryAnyoneCourtshipQuestionsCondition()
+        {
+            Hero conversationHero = Hero.OneToOneConversationHero;
+            if (conversationHero == null)
+            {
+                return false;
+            }
+
+            // Can only do courtship questions if not already completed
+            return !MarryAnyoneRomanceHelper.HasCompletedCourtshipQuestions(conversationHero);
+        }
+
+        /// <summary>
+        /// Gets the count of correct answers for a hero.
+        /// </summary>
+        private int GetCorrectAnswersCount(Hero hero)
+        {
+            if (hero == null) return 0;
+            return _correctAnswersByHero.ContainsKey(hero) ? _correctAnswersByHero[hero] : 0;
+        }
+
+        /// <summary>
+        /// Consequence for starting courtship questions - resets question state.
+        /// </summary>
+        private void MarryAnyoneStartCourtshipConsequence()
+        {
+            Hero conversationHero = Hero.OneToOneConversationHero;
+            if (conversationHero != null)
+            {
+                _correctAnswersByHero[conversationHero] = 0;
+            }
+        }
+
+        /// <summary>
+        /// Consequence for answering a courtship question.
+        /// </summary>
+        private void MarryAnyoneAnswerConsequence(bool isCorrect)
+        {
+            Hero conversationHero = Hero.OneToOneConversationHero;
+            if (conversationHero != null && isCorrect)
+            {
+                if (!_correctAnswersByHero.ContainsKey(conversationHero))
+                {
+                    _correctAnswersByHero[conversationHero] = 0;
+                }
+                _correctAnswersByHero[conversationHero]++;
+            }
+        }
+
+        /// <summary>
+        /// Consequence for completing courtship questions successfully.
+        /// </summary>
+        private void MarryAnyoneCourtshipCompleteConsequence()
+        {
+            Hero conversationHero = Hero.OneToOneConversationHero;
+            if (conversationHero != null)
+            {
+                MarryAnyoneRomanceHelper.CompleteCourtshipQuestions(conversationHero);
+                MarryAnyoneRomanceHelper.IncreaseRomanceLevel(conversationHero);
+                
+                // Increase relationship as well
+                int correctAnswers = GetCorrectAnswersCount(conversationHero);
+                int relationBonus = correctAnswers * RELATION_BONUS_PER_CORRECT_ANSWER;
+                CharacterRelationManager.SetHeroRelation(Hero.MainHero, conversationHero, 
+                    CharacterRelationManager.GetHeroRelation(Hero.MainHero, conversationHero) + relationBonus);
+
+                InformationManager.DisplayMessage(
+                    new InformationMessage(
+                        $"Você se conectou com {conversationHero.Name}! (+{relationBonus} de relacionamento)",
+                        Colors.Green
+                    )
+                );
+            }
+        }
+
+        /// <summary>
         /// Condition for the marriage proposal dialogue option.
+        /// Requires courtship questions to be completed.
         /// </summary>
         private bool MarryAnyoneProposeCondition()
         {
@@ -165,10 +478,10 @@ namespace Bannerlord.LordLife.MarryAnyone
                 return false;
             }
 
-            // Base acceptance chance: 50% at relationship 0, increases with relationship
+            // Base acceptance chance: BASE_ACCEPTANCE_CHANCE% at relationship 0, increases with relationship
             // At relationship 50+, acceptance is guaranteed
-            int acceptanceChance = 50 + relationshipLevel;
-            int randomValue = MBRandom.RandomInt(100);
+            int acceptanceChance = Math.Min(MAX_RANDOM_VALUE, BASE_ACCEPTANCE_CHANCE + relationshipLevel);
+            int randomValue = MBRandom.RandomInt(MAX_RANDOM_VALUE);
 
             bool accepted = randomValue < acceptanceChance;
 
