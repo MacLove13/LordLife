@@ -17,9 +17,13 @@ namespace Bannerlord.LordLife.MarryAnyone
     {
         // Relationship bonus per correct answer during courtship
         private const int RELATION_BONUS_PER_CORRECT_ANSWER = 5;
+        
+        // Marriage proposal acceptance chance constants
+        private const int BASE_ACCEPTANCE_CHANCE = 50;
+        private const int MAX_RANDOM_VALUE = 100;
 
-        // Track conversation state for courtship questions
-        private int _correctAnswers = 0;
+        // Track conversation state for courtship questions per hero
+        private Dictionary<Hero, int> _correctAnswersByHero = new Dictionary<Hero, int>();
 
         // Save data: track heroes who completed courtship
         private List<Hero> _savedCourtshipCompletedHeroes = new List<Hero>();
@@ -325,7 +329,7 @@ namespace Bannerlord.LordLife.MarryAnyone
                 "marry_anyone_courtship_complete",
                 "hero_main_options",
                 "{=marry_anyone_courtship_complete_positive}Suas respostas me agradaram. Acho que somos compatíveis. Talvez possamos falar mais sobre o futuro...",
-                () => _correctAnswers >= 2,
+                () => GetCorrectAnswersCount(Hero.OneToOneConversationHero) >= 2,
                 MarryAnyoneCourtshipCompleteConsequence,
                 100,
                 null);
@@ -336,7 +340,7 @@ namespace Bannerlord.LordLife.MarryAnyone
                 "marry_anyone_courtship_complete",
                 "hero_main_options",
                 "{=marry_anyone_courtship_complete_negative}Hmm... parece que temos visões diferentes. Talvez devêssemos nos conhecer melhor com o tempo.",
-                () => _correctAnswers < 2,
+                () => GetCorrectAnswersCount(Hero.OneToOneConversationHero) < 2,
                 null,
                 99,
                 null);
@@ -379,11 +383,24 @@ namespace Bannerlord.LordLife.MarryAnyone
         }
 
         /// <summary>
+        /// Gets the count of correct answers for a hero.
+        /// </summary>
+        private int GetCorrectAnswersCount(Hero hero)
+        {
+            if (hero == null) return 0;
+            return _correctAnswersByHero.ContainsKey(hero) ? _correctAnswersByHero[hero] : 0;
+        }
+
+        /// <summary>
         /// Consequence for starting courtship questions - resets question state.
         /// </summary>
         private void MarryAnyoneStartCourtshipConsequence()
         {
-            _correctAnswers = 0;
+            Hero conversationHero = Hero.OneToOneConversationHero;
+            if (conversationHero != null)
+            {
+                _correctAnswersByHero[conversationHero] = 0;
+            }
         }
 
         /// <summary>
@@ -391,9 +408,14 @@ namespace Bannerlord.LordLife.MarryAnyone
         /// </summary>
         private void MarryAnyoneAnswerConsequence(bool isCorrect)
         {
-            if (isCorrect)
+            Hero conversationHero = Hero.OneToOneConversationHero;
+            if (conversationHero != null && isCorrect)
             {
-                _correctAnswers++;
+                if (!_correctAnswersByHero.ContainsKey(conversationHero))
+                {
+                    _correctAnswersByHero[conversationHero] = 0;
+                }
+                _correctAnswersByHero[conversationHero]++;
             }
         }
 
@@ -409,7 +431,8 @@ namespace Bannerlord.LordLife.MarryAnyone
                 MarryAnyoneRomanceHelper.IncreaseRomanceLevel(conversationHero);
                 
                 // Increase relationship as well
-                int relationBonus = _correctAnswers * RELATION_BONUS_PER_CORRECT_ANSWER;
+                int correctAnswers = GetCorrectAnswersCount(conversationHero);
+                int relationBonus = correctAnswers * RELATION_BONUS_PER_CORRECT_ANSWER;
                 CharacterRelationManager.SetHeroRelation(Hero.MainHero, conversationHero, 
                     CharacterRelationManager.GetHeroRelation(Hero.MainHero, conversationHero) + relationBonus);
 
@@ -455,10 +478,10 @@ namespace Bannerlord.LordLife.MarryAnyone
                 return false;
             }
 
-            // Base acceptance chance: 50% at relationship 0, increases with relationship
+            // Base acceptance chance: BASE_ACCEPTANCE_CHANCE% at relationship 0, increases with relationship
             // At relationship 50+, acceptance is guaranteed
-            int acceptanceChance = Math.Min(100, 50 + relationshipLevel);
-            int randomValue = MBRandom.RandomInt(100);
+            int acceptanceChance = Math.Min(MAX_RANDOM_VALUE, BASE_ACCEPTANCE_CHANCE + relationshipLevel);
+            int randomValue = MBRandom.RandomInt(MAX_RANDOM_VALUE);
 
             bool accepted = randomValue < acceptanceChance;
 

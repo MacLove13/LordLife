@@ -13,7 +13,7 @@ namespace Bannerlord.LordLife.MarryAnyone
     public static class MarryAnyoneRomanceHelper
     {
         // Track which heroes have completed courtship questions
-        // This is persisted across save/load via the SaveableTypeDefiner
+        // This is persisted across save/load via CampaignBehaviorBase.SyncData() in MarryAnyoneCampaignBehavior
         private static HashSet<Hero> _courtshipQuestionsCompleted = new HashSet<Hero>();
 
         /// <summary>
