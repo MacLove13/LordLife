@@ -1,6 +1,10 @@
 # LordLife
 
 <p align="center">
+  <img src="logo.png" alt="LordLife Logo"/>
+</p>
+
+<p align="center">
   <img src="https://img.shields.io/badge/Bannerlord-1.3.6-blue" alt="Bannerlord Version"/>
   <img src="https://img.shields.io/badge/DLC-War%20Sails-green" alt="War Sails DLC"/>
   <img src="https://img.shields.io/badge/ModVersion-0.0.1-orange" alt="Mod Version"/>

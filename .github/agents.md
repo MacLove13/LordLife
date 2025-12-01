@@ -156,7 +156,7 @@ Para desenvolver novas funcionalidades:
 
 ## 📚 Recursos Externos
 
-- [TaleWorlds API Documentation v1.0.3](https://apidoc.bannerlord.com/v/1.0.3/namespace_tale_worlds.html) - Referência oficial das classes e métodos da API TaleWorlds
+- [TaleWorlds API Documentation v1.3.4](https://apidoc.bannerlord.com/v/1.3.4/) - Referência oficial das classes e métodos da API TaleWorlds
 - [Bannerlord Documentation](https://docs.bannerlordmodding.com/)
 - [BUTR GitHub](https://github.com/BUTR)
 - [Harmony Wiki](https://harmony.pardeike.net/)
