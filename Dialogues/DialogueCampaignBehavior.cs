@@ -272,12 +272,23 @@ namespace Bannerlord.LordLife.Dialogues
             campaignGameStarter.AddPlayerLine(
                 "lordlife_main_conversation",
                 "hero_main_options",
-                "lordlife_dialogue_submenu",
+                "lordlife_dialogue_submenu_npc",
                 "{=lordlife_main_conversation}Conversar com {NPC_NAME}...",
                 () => CanShowMainConversation(),
                 () => OnMainConversationSelected(),
                 150, // High priority to appear near the top
                 null,
+                null);
+
+            // NPC response that introduces the dialogue submenu
+            campaignGameStarter.AddDialogLine(
+                "lordlife_dialogue_submenu_npc",
+                "lordlife_dialogue_submenu_npc",
+                "lordlife_dialogue_submenu",
+                "{=lordlife_dialogue_submenu_npc}O que você gostaria de conversar?",
+                null,
+                null,
+                100,
                 null);
         }
 
