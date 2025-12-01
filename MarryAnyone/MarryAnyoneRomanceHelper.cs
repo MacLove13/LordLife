@@ -62,18 +62,8 @@ namespace Bannerlord.LordLife.MarryAnyone
         /// <returns>True if marriage proposal is possible, false otherwise.</returns>
         public static bool CanProposeMarriage(Hero hero)
         {
-            if (!CanRomance(hero))
-            {
-                return false;
-            }
-
-            // Neither should be already married
-            if (hero.Spouse != null || Hero.MainHero.Spouse != null)
-            {
-                return false;
-            }
-
-            return true;
+            // CanRomance already validates spouse status, aliveness, and opposite sex
+            return CanRomance(hero);
         }
 
         /// <summary>

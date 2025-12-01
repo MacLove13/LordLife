@@ -13,32 +13,24 @@ namespace Bannerlord.LordLife.MarryAnyone
     public static class MarryAnyonePatches
     {
         /// <summary>
-        /// Patches the Romance.RomanceCourtshipAttemptCooldown to allow repeated courtship attempts.
+        /// Patches Romance.GetRomanticLevel to log romance level checks for debugging.
+        /// This helps track romance progression between the player and other characters.
         /// </summary>
         [HarmonyPatch(typeof(Romance), nameof(Romance.GetRomanticLevel))]
         [HarmonyPostfix]
         public static void GetRomanticLevelPostfix(Hero hero1, Hero hero2, ref Romance.RomanceLevelEnum __result)
         {
-            // If either hero is the player and they are of opposite sex,
-            // we allow romance to proceed more easily
             if (hero1 == null || hero2 == null)
             {
                 return;
             }
 
             bool involvesPlayer = hero1 == Hero.MainHero || hero2 == Hero.MainHero;
-            bool oppositeGender = hero1.IsFemale != hero2.IsFemale;
 
-            if (involvesPlayer && oppositeGender)
+            if (involvesPlayer)
             {
-                // If not yet started romance, allow it to be considered as courtship started
-                if (__result == Romance.RomanceLevelEnum.Untested)
-                {
-                    // Don't change untested - let it be discovered through dialogue
-                }
+                Debug.Print($"[LordLife:MarryAnyone] Romance level between {hero1.Name} and {hero2.Name}: {__result}");
             }
-
-            Debug.Print($"[LordLife:MarryAnyone] Romance level between {hero1.Name} and {hero2.Name}: {__result}");
         }
 
         /// <summary>

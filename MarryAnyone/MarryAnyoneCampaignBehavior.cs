@@ -1,5 +1,6 @@
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Conversation;
+using TaleWorlds.Core;
 using TaleWorlds.Library;
 using TaleWorlds.Localization;
 
@@ -87,6 +88,17 @@ namespace Bannerlord.LordLife.MarryAnyone
                 100,
                 null);
 
+            // NPC rejects marriage proposal
+            campaignGameStarter.AddDialogLine(
+                "marry_anyone_propose_reject",
+                "marry_anyone_propose_response",
+                "hero_main_options",
+                "{=marry_anyone_propose_reject}Agradeço a oferta, mas não posso aceitar. Talvez precisamos nos conhecer melhor primeiro.",
+                MarryAnyoneProposalRejectCondition,
+                null,
+                99,
+                null);
+
             // Finalize marriage
             campaignGameStarter.AddPlayerLine(
                 "marry_anyone_marriage_confirm",
@@ -132,15 +144,48 @@ namespace Bannerlord.LordLife.MarryAnyone
 
         /// <summary>
         /// Condition for the NPC to accept the marriage proposal.
-        /// This can be expanded with more complex logic (relationship, charm, etc.)
+        /// Uses relationship level to determine acceptance probability.
         /// </summary>
         private bool MarryAnyoneProposalAcceptCondition()
         {
             Hero conversationHero = Hero.OneToOneConversationHero;
             
-            // For now, always accept if the proposal condition was met
-            // Can be expanded with relationship checks, skill checks, etc.
-            return conversationHero != null;
+            if (conversationHero == null)
+            {
+                return false;
+            }
+
+            // Get relationship between player and the hero (-100 to 100)
+            int relationshipLevel = CharacterRelationManager.GetHeroRelation(Hero.MainHero, conversationHero);
+
+            // Minimum relationship of 0 required for acceptance
+            // Higher relationship increases chance of acceptance
+            if (relationshipLevel < 0)
+            {
+                return false;
+            }
+
+            // Base acceptance chance: 50% at relationship 0, increases with relationship
+            // At relationship 50+, acceptance is guaranteed
+            int acceptanceChance = 50 + relationshipLevel;
+            int randomValue = MBRandom.RandomInt(100);
+
+            bool accepted = randomValue < acceptanceChance;
+
+            Debug.Print($"[LordLife:MarryAnyone] Proposal to {conversationHero.Name}: Relationship={relationshipLevel}, Chance={acceptanceChance}%, Roll={randomValue}, Accepted={accepted}");
+
+            return accepted;
+        }
+
+        /// <summary>
+        /// Condition for the NPC to reject the marriage proposal.
+        /// This is the inverse of the accept condition.
+        /// </summary>
+        private bool MarryAnyoneProposalRejectCondition()
+        {
+            // This method is called as a fallback when accept condition fails
+            // It should always return true to handle the rejection case
+            return true;
         }
 
         /// <summary>
