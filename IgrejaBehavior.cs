@@ -14,9 +14,6 @@ namespace Bannerlord.LordLife
     {
         // Store hero StringIds instead of Hero objects for proper serialization
         private Dictionary<string, string> _settlementPriestIds = new Dictionary<string, string>();
-        
-        // Track whether we added the priest to the settlement in the current church menu session
-        private bool _priestAddedToSettlement = false;
 
         public override void RegisterEvents()
         {
@@ -92,32 +89,21 @@ namespace Bannerlord.LordLife
             if (priest != null)
             {
                 Debug.Print($"[LordLife] Igreja: Padre presente - {priest.Name}");
-                
-                // Temporarily add priest to settlement for the overlay to show
-                // Only add if not already present (which should be the normal case)
-                if (priest.CurrentSettlement != settlement)
-                {
-                    // Use EnterSettlementAction to make the priest appear in the settlement overlay
-                    EnterSettlementAction.ApplyForCharacterOnly(priest, settlement);
-                    // Track that we added the priest so we can remove them when leaving
-                    _priestAddedToSettlement = true;
-                }
-                // If priest is already in settlement, we don't touch them or set the flag
-                // This ensures we only clean up priests we explicitly added
+                // Priest is already in the settlement as a notable, no need to add/remove
             }
         }
 
         private Hero? CreatePriest(Settlement settlement)
         {
-            CharacterObject? wandererTemplate = GetWandererTemplate(settlement.Culture);
-            if (wandererTemplate == null)
+            CharacterObject? notableTemplate = GetNotableTemplate(settlement.Culture);
+            if (notableTemplate == null)
             {
-                Debug.Print("[LordLife] Não foi possível encontrar template de wanderer para criar padre.");
+                Debug.Print("[LordLife] Não foi possível encontrar template de notável para criar padre.");
                 return null;
             }
 
             Hero priest = HeroCreator.CreateSpecialHero(
-                wandererTemplate,
+                notableTemplate,
                 settlement,
                 null,
                 null,
@@ -134,30 +120,33 @@ namespace Bannerlord.LordLife
                 // Keep the priest active so it can be interacted with
                 priest.ChangeState(Hero.CharacterStates.Active);
                 
-                // Use Occupation.Artisan to prevent appearing in wanderer/tavern lists
+                // Set as Artisan notable (clergy is a type of artisan/scholar)
                 priest.SetNewOccupation(Occupation.Artisan);
                 
-                // Remove from settlement to prevent appearing in default menus
-                // The priest will be added back only when entering the church menu
-                if (priest.CurrentSettlement != null)
+                // Verify the priest is properly associated with the settlement
+                if (priest.CurrentSettlement != settlement)
                 {
-                    LeaveSettlementAction.ApplyForCharacterOnly(priest);
+                    Debug.Print($"[LordLife] Warning: Padre {priest.Name} not automatically associated with settlement. CurrentSettlement: {(priest.CurrentSettlement != null ? priest.CurrentSettlement.Name.ToString() : "null")}");
                 }
-
-                Debug.Print($"[LordLife] Padre criado: {priest.Name} para {settlement.Name}");
+                else
+                {
+                    Debug.Print($"[LordLife] Padre criado: {priest.Name} para {settlement.Name}");
+                }
             }
 
             return priest;
         }
 
-        private CharacterObject? GetWandererTemplate(CultureObject culture)
+        private CharacterObject? GetNotableTemplate(CultureObject culture)
         {
-            string templateId = "spc_wanderer_" + culture.StringId + "_0";
+            // Use notable_artisan templates instead of wanderer templates
+            string templateId = "notable_artisan_" + culture.StringId;
             CharacterObject? template = MBObjectManager.Instance.GetObject<CharacterObject>(templateId);
 
             if (template == null)
             {
-                template = MBObjectManager.Instance.GetObject<CharacterObject>("spc_wanderer_empire_0");
+                // Fallback to empire artisan if culture-specific not found
+                template = MBObjectManager.Instance.GetObject<CharacterObject>("notable_artisan_empire");
             }
 
             return template;
@@ -269,24 +258,7 @@ namespace Bannerlord.LordLife
                 },
                 args =>
                 {
-                    // Remove priest from settlement when leaving church to prevent appearing in tavern
-                    // Only remove if we explicitly added them in OnIgrejaMenuInit (tracked by flag)
-                    // This ensures we don't accidentally remove priests that were in the settlement
-                    // for other reasons (which shouldn't happen in normal gameplay)
-                    if (_priestAddedToSettlement)
-                    {
-                        Settlement? settlement = Settlement.CurrentSettlement;
-                        if (settlement != null)
-                        {
-                            Hero? priest = GetExistingPriestForSettlement(settlement);
-                            if (priest != null && priest.CurrentSettlement == settlement)
-                            {
-                                LeaveSettlementAction.ApplyForCharacterOnly(priest);
-                                Debug.Print($"[LordLife] Padre removido da settlement ao sair da igreja");
-                            }
-                        }
-                        _priestAddedToSettlement = false;
-                    }
+                    // Priest remains in settlement as a notable - no need to remove
                     GameMenu.SwitchToMenu("town");
                 },
                 true,
