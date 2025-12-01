@@ -1,3 +1,4 @@
+using Bannerlord.LordLife.DebugTools;
 using Bannerlord.LordLife.Dialogues;
 using Bannerlord.LordLife.MarryAnyone;
 using Bannerlord.LordLife.Workshop;
@@ -44,6 +45,10 @@ namespace Bannerlord.LordLife
 
             if (gameStarterObject is CampaignGameStarter campaignGameStarter)
             {
+                // Add Debug behavior (only active when DebugSettings.IsDebugEnabled is true)
+                campaignGameStarter.AddBehavior(new DebugBehavior());
+                Debug.Print("[LordLife:Debug] DebugBehavior registrado.");
+
                 // Add MarryAnyone campaign behavior
                 campaignGameStarter.AddBehavior(new MarryAnyoneCampaignBehavior());
                 Debug.Print("[LordLife:MarryAnyone] CampaignBehavior adicionado.");
