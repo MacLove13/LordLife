@@ -1,4 +1,4 @@
-﻿using Bannerlord.LordLife.MarryAnyone;
+using Bannerlord.LordLife.MarryAnyone;
 using HarmonyLib;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.Library;
@@ -54,6 +54,18 @@ namespace Bannerlord.LordLife
                     Colors.Green
                 )
             );
+        }
+
+        protected override void OnGameStart(Game game, IGameStarter gameStarterObject)
+        {
+            base.OnGameStart(game, gameStarterObject);
+
+            // Works with both Campaign (Story Mode) and Sandbox modes
+            if (gameStarterObject is CampaignGameStarter campaignStarter)
+            {
+                campaignStarter.AddBehavior(new IgrejaBehavior());
+                Debug.Print("[LordLife] IgrejaBehavior registrado.");
+            }
         }
     }
 }
