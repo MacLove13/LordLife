@@ -1,1 +1,108 @@
-Este é um Mod para Mount & Blade Bannerlord, versão 1.3.6.
+# LordLife
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Bannerlord-1.3.6-blue" alt="Bannerlord Version"/>
+  <img src="https://img.shields.io/badge/DLC-War%20Sails-green" alt="War Sails DLC"/>
+  <img src="https://img.shields.io/badge/ModVersion-0.0.1-orange" alt="Mod Version"/>
+</p>
+
+## 📖 Descrição
+
+**LordLife** é um mod para **Mount & Blade II: Bannerlord** versão 1.3.6, com suporte à DLC **War Sails**. Este mod expande a experiência de jogo, adicionando funcionalidades para enriquecer a vida do lorde em Calradia.
+
+## 🎮 Requisitos
+
+- **Mount & Blade II: Bannerlord** versão **1.3.6** ou superior
+- **DLC War Sails** (mais recente)
+- **Bannerlord.Harmony** v2.2.2 ou superior (recomendado v2.3.3+)
+
+## 📦 Dependências do Mod
+
+O mod depende dos seguintes módulos (carregados antes do LordLife):
+- `Bannerlord.Harmony` v2.2.2+ (recomendado v2.3.3+)
+- `Native`
+- `SandBoxCore`
+- `Sandbox`
+- `StoryMode`
+- `CustomBattle`
+
+## 🚀 Instalação
+
+1. Baixe a versão mais recente do mod
+2. Extraia o conteúdo na pasta `Modules` do seu Bannerlord:
+   ```
+   {Diretório do jogo}/Modules/Bannerlord.LordLife/
+   ```
+3. Inicie o Bannerlord Launcher
+4. Ative o mod `LordLife` na lista de mods
+5. Certifique-se de que as dependências estão carregadas **antes** do LordLife
+
+## 🛠️ Compilação do Projeto
+
+### Pré-requisitos
+- **.NET SDK 6.0** ou superior
+- **.NET Framework 4.7.2** (para build Windows)
+- **Visual Studio 2022** ou **VSCode** com extensão C#
+
+### Configuração
+
+1. Clone o repositório:
+   ```bash
+   git clone https://github.com/MacLove13/LordLife.git
+   ```
+
+2. Configure o caminho do jogo no arquivo `.csproj` se necessário:
+   ```xml
+   <GameFolder>{SEU_CAMINHO}\Mount &amp; Blade II Bannerlord</GameFolder>
+   ```
+   > Exemplo: `D:\SteamLibrary\steamapps\common\Mount & Blade II Bannerlord`
+
+3. Compile o projeto:
+   ```bash
+   dotnet build -c Release
+   ```
+
+### Targets Suportados
+- `net472` - Windows (Steam/GOG)
+- `net6` - Windows Store/Xbox
+
+## 📁 Estrutura do Projeto
+
+```
+Bannerlord.LordLife/
+├── _Module/
+│   └── SubModule.xml      # Configuração do módulo para Bannerlord
+├── Properties/
+│   └── launchSettings.json
+├── .vscode/               # Configurações do VSCode
+├── SubModule.cs           # Classe principal do mod
+├── Bannerlord.LordLife.csproj
+├── README.md
+└── .gitignore
+```
+
+## 🔧 Desenvolvimento
+
+### APIs TaleWorlds Utilizadas
+- `TaleWorlds.MountAndBlade` - Core da engine do jogo
+- `TaleWorlds.Library` - Utilitários e debug
+- `TaleWorlds.CampaignSystem` - Sistema de campanha
+- `TaleWorlds.Core` - Funcionalidades centrais
+- `TaleWorlds.GauntletUI` - Sistema de UI
+
+### Bibliotecas Auxiliares
+- **Harmony 2.4.2** - Para patching de métodos
+- **BUTR.Harmony.Analyzer** - Análise de código Harmony
+- **Bannerlord.BuildResources** - Recursos de build
+
+## 📝 Licença
+
+Este projeto está sob a licença MIT.
+
+## 🤝 Contribuição
+
+Contribuições são bem-vindas! Por favor, abra uma issue ou pull request.
+
+---
+
+<p align="center">Feito com ❤️ para a comunidade Bannerlord</p>
