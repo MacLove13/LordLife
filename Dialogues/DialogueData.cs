@@ -114,32 +114,50 @@ namespace Bannerlord.LordLife.Dialogues
     /// <summary>
     /// Tracks cooldown state for a dialogue with a specific NPC.
     /// </summary>
-    
+    [SaveableRootClass(1)]
     public class DialogueCooldownEntry
     {
         /// <summary>
         /// The game day when this dialogue can be used again (for Basic/Relationship types).
         /// </summary>
         [SaveableField(1)]
-        public float UnlocksAtDay;
+        private float _unlocksAtDay;
+        
+        public float UnlocksAtDay
+        {
+            get => _unlocksAtDay;
+            set => _unlocksAtDay = value;
+        }
 
         /// <summary>
         /// For War dialogues: the war ID that was active when dialogue was used.
         /// </summary>
         [SaveableField(2)]
-        public string? LastWarId;
+        private string? _lastWarId;
+        
+        public string? LastWarId
+        {
+            get => _lastWarId;
+            set => _lastWarId = value;
+        }
 
         /// <summary>
         /// For DeathCondolence dialogues: the ID of the deceased relative that was condoled.
         /// </summary>
         [SaveableField(3)]
-        public string? LastCondoledRelativeId;
+        private string? _lastCondoledRelativeId;
+        
+        public string? LastCondoledRelativeId
+        {
+            get => _lastCondoledRelativeId;
+            set => _lastCondoledRelativeId = value;
+        }
 
         public DialogueCooldownEntry()
         {
-            UnlocksAtDay = 0;
-            LastWarId = null;
-            LastCondoledRelativeId = null;
+            _unlocksAtDay = 0;
+            _lastWarId = null;
+            _lastCondoledRelativeId = null;
         }
     }
 }
