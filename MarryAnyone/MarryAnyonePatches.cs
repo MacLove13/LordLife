@@ -128,17 +128,17 @@ namespace Bannerlord.LordLife.MarryAnyone
                     return false; // Skip original method
                 }
 
-                // Check if romance is possible using our helper
-                if (!MarryAnyoneRomanceHelper.CanRomance(conversationHero))
-                {
-                    __result = true; // Block romance
-                    return false; // Skip original method
-                }
-
                 // Check if the hero is one of our supported types for romance
                 if (conversationHero.IsLord || conversationHero.IsWanderer || conversationHero.IsNotable)
                 {
-                    // For companions and notables, they may not have a Clan property
+                    // Check if romance is possible using our helper
+                    if (!MarryAnyoneRomanceHelper.CanRomance(conversationHero))
+                    {
+                        __result = true; // Block romance
+                        return false; // Skip original method
+                    }
+                    
+                    // For lords, companions (wanderers), and notables, they may not have a Clan property
                     // The vanilla method expects Clan to exist, which causes NullReferenceException
                     // We safely allow romance for these character types even without a clan
                     __result = false; // Don't block romance
