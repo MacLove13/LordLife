@@ -51,28 +51,12 @@ O mod depende dos seguintes módulos (carregados antes do LordLife):
    git clone https://github.com/MacLove13/LordLife.git
    ```
 
-2. **Copie as DLLs do Bannerlord** para a pasta de desenvolvimento:
-   
-   Execute o script PowerShell para copiar todas as DLLs necessárias do jogo:
-   ```powershell
-   .\Development\copy-dlls.ps1 -GameFolder "SEU_CAMINHO\Mount & Blade II Bannerlord"
-   ```
-   
-   **Exemplo:**
-   ```powershell
-   # Steam (Windows)
-   .\Development\copy-dlls.ps1 -GameFolder "D:\SteamLibrary\steamapps\common\Mount & Blade II Bannerlord"
-   
-   # Steam (Local padrão)
-   .\Development\copy-dlls.ps1 -GameFolder "C:\Program Files (x86)\Steam\steamapps\common\Mount & Blade II Bannerlord"
-   ```
-   
-   > ⚠️ **Importante**: Este passo é obrigatório antes de compilar o projeto. As DLLs do jogo não são incluídas no repositório por questões de direitos autorais.
-
-3. Compile o projeto:
+2. Compile o projeto:
    ```bash
    dotnet build -c Release
    ```
+
+> 📝 **Nota**: As DLLs de referência do Bannerlord estão incluídas no repositório na pasta `Development/Bannerlord/`. Elas foram baixadas dos pacotes NuGet oficiais do Bannerlord (Bannerlord.ReferenceAssemblies) versão 1.3.6.102656.
 
 ### Targets Suportados
 - `net472` - Windows (Steam/GOG)

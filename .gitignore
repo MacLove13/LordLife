@@ -6,7 +6,3 @@
 # Compilados
 bin/
 obj/
-
-# Bannerlord DLLs (Development folder)
-# These should be copied locally using the copy-dlls.ps1 script
-Development/Bannerlord/*.dll
