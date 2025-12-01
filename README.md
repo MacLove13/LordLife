@@ -55,12 +55,62 @@ O mod depende dos seguintes módulos (carregados antes do LordLife):
    git clone https://github.com/MacLove13/LordLife.git
    ```
 
-2. Compile o projeto:
+2. **(Opcional) Copiar DLLs do jogo** - Se você preferir usar as DLLs da sua instalação local do jogo ao invés das DLLs de referência NuGet:
+
+   **No Windows (PowerShell):**
+   
+   Abra o PowerShell na pasta do projeto e execute:
+   
+   ```powershell
+   .\Development\copy-dlls.ps1 -GameFolder "CAMINHO_DA_SUA_INSTALACAO_DO_BANNERLORD"
+   ```
+
+   **Exemplos de caminhos comuns:**
+   
+   - **Steam (padrão):**
+     ```powershell
+     .\Development\copy-dlls.ps1 -GameFolder "C:\Program Files (x86)\Steam\steamapps\common\Mount & Blade II Bannerlord"
+     ```
+   
+   - **Steam (biblioteca personalizada):**
+     ```powershell
+     .\Development\copy-dlls.ps1 -GameFolder "D:\SteamLibrary\steamapps\common\Mount & Blade II Bannerlord"
+     ```
+   
+   - **GOG:**
+     ```powershell
+     .\Development\copy-dlls.ps1 -GameFolder "C:\GOG Games\Mount & Blade II Bannerlord"
+     ```
+   
+   - **Epic Games:**
+     ```powershell
+     .\Development\copy-dlls.ps1 -GameFolder "C:\Program Files\Epic Games\Mount & Blade II Bannerlord"
+     ```
+   
+   - **Xbox Game Pass:**
+     ```powershell
+     .\Development\copy-dlls.ps1 -GameFolder "C:\XboxGames\Mount & Blade II Bannerlord" -BinariesFolder "Gaming.Desktop.x64_Shipping_Client"
+     ```
+
+   > 💡 **Dica**: Para encontrar onde o jogo está instalado:
+   > - **Steam**: Clique com botão direito no jogo > Gerenciar > Procurar arquivos locais
+   > - **GOG**: Configurações > Gerenciar Instalação > Mostrar pasta
+   > - **Epic Games**: Configurações > Mount & Blade II Bannerlord > Ícone de pasta
+   > - **Xbox Game Pass**: Configurações do Windows > Aplicativos > Procurar por "Mount & Blade"
+   > - Ou procure por "Mount & Blade II Bannerlord" no explorador de arquivos
+   
+   > ⚠️ **Erro ao executar o script?** Se você receber um erro sobre políticas de execução, execute o PowerShell como **Administrador** e rode:
+   > ```powershell
+   > Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+   > ```
+   > Depois tente executar o script novamente.
+
+3. Compile o projeto:
    ```bash
    dotnet build -c Release
    ```
 
-> 📝 **Nota**: As DLLs de referência do Bannerlord estão incluídas no repositório na pasta `Development/Bannerlord/`. Elas foram baixadas dos pacotes NuGet oficiais do Bannerlord (Bannerlord.ReferenceAssemblies) versão 1.3.6.102656.
+> 📝 **Nota**: As DLLs de referência do Bannerlord estão incluídas no repositório na pasta `Development/Bannerlord/`. Elas foram baixadas dos pacotes NuGet oficiais do Bannerlord (Bannerlord.ReferenceAssemblies) versão 1.3.6.102656. Usar o script `copy-dlls.ps1` é opcional e só é necessário se você quiser usar as DLLs da sua instalação local do jogo.
 
 ### Targets Suportados
 - `net472` - Windows (Steam/GOG)
