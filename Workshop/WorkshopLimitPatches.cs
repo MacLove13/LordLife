@@ -1,6 +1,7 @@
 using HarmonyLib;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.Library;
+using System.Linq;
 
 namespace Bannerlord.LordLife.Workshop
 {
@@ -32,9 +33,36 @@ namespace Bannerlord.LordLife.Workshop
         /// </summary>
         public static void PatchWorkshopLimit(Harmony harmony)
         {
-            bool patchApplied = false;
+            int patchCount = 0;
 
-            // Primary patch target: MaximumWorkshopsPlayerCanHave property in Campaign
+            // Patch 1: Clan.WorkshopCountLimit property - Used by UI for display
+            try
+            {
+                var clanType = typeof(Clan);
+                var workshopCountLimitProperty = AccessTools.Property(clanType, "WorkshopCountLimit");
+                
+                if (workshopCountLimitProperty != null)
+                {
+                    var getMethod = workshopCountLimitProperty.GetGetMethod();
+                    if (getMethod != null)
+                    {
+                        var postfix = new HarmonyMethod(typeof(WorkshopLimitPatches), nameof(WorkshopCountLimitPostfix));
+                        harmony.Patch(getMethod, postfix: postfix);
+                        Debug.Print("[LordLife:Workshop] Successfully patched Clan.WorkshopCountLimit property");
+                        patchCount++;
+                    }
+                }
+                else
+                {
+                    Debug.Print("[LordLife:Workshop] WorkshopCountLimit property not found, trying alternatives...");
+                }
+            }
+            catch (System.Exception ex)
+            {
+                LogPatchError("Clan.WorkshopCountLimit", ex);
+            }
+
+            // Patch 2: Campaign.MaximumWorkshopsPlayerCanHave property
             try
             {
                 var campaignType = typeof(Campaign);
@@ -48,58 +76,63 @@ namespace Bannerlord.LordLife.Workshop
                         var postfix = new HarmonyMethod(typeof(WorkshopLimitPatches), nameof(MaximumWorkshopsPlayerCanHavePostfix));
                         harmony.Patch(getMethod, postfix: postfix);
                         Debug.Print("[LordLife:Workshop] Successfully patched Campaign.MaximumWorkshopsPlayerCanHave");
-                        patchApplied = true;
+                        patchCount++;
                     }
                 }
                 else
                 {
-                    Debug.Print("[LordLife:Workshop] MaximumWorkshopsPlayerCanHave property not found in Campaign class");
+                    Debug.Print("[LordLife:Workshop] MaximumWorkshopsPlayerCanHave property not found");
                 }
             }
-            catch (System.Exception ex) when (ex is System.Reflection.ReflectionTypeLoadException || 
-                                              ex is System.Reflection.TargetInvocationException || 
-                                              ex is System.ArgumentException)
+            catch (System.Exception ex)
             {
-                LogPatchError("MaximumWorkshopsPlayerCanHave", ex);
+                LogPatchError("Campaign.MaximumWorkshopsPlayerCanHave", ex);
             }
 
-            // Secondary patch target: WorkshopsCountLimit property on Clan
-            if (!patchApplied)
+            // Patch 3: Try alternative property names that might exist in different versions
+            // This is attempted regardless of previous patch success as different properties
+            // may be used by different parts of the game (UI vs logic)
+            try
             {
-                try
+                var clanType = typeof(Clan);
+                
+                // Try "WorkshopsCountLimit" as alternative spelling
+                var workshopLimitProperty = AccessTools.Property(clanType, "WorkshopsCountLimit");
+                if (workshopLimitProperty != null)
                 {
-                    var clanType = typeof(Clan);
-                    var workshopLimitProperty = AccessTools.Property(clanType, "WorkshopsCountLimit");
-                    
-                    if (workshopLimitProperty != null)
+                    var getMethod = workshopLimitProperty.GetGetMethod();
+                    if (getMethod != null)
                     {
-                        var getMethod = workshopLimitProperty.GetGetMethod();
-                        if (getMethod != null)
-                        {
-                            var postfix = new HarmonyMethod(typeof(WorkshopLimitPatches), nameof(WorkshopLimitPropertyPostfix));
-                            harmony.Patch(getMethod, postfix: postfix);
-                            Debug.Print("[LordLife:Workshop] Successfully patched Clan.WorkshopsCountLimit property");
-                            patchApplied = true;
-                        }
+                        // Uses same postfix as it handles the same Clan instance and result type
+                        var postfix = new HarmonyMethod(typeof(WorkshopLimitPatches), nameof(WorkshopCountLimitPostfix));
+                        harmony.Patch(getMethod, postfix: postfix);
+                        Debug.Print("[LordLife:Workshop] Successfully patched Clan.WorkshopsCountLimit property (alternative)");
+                        patchCount++;
                     }
                 }
-                catch (System.Exception ex) when (ex is System.Reflection.ReflectionTypeLoadException || 
-                                                  ex is System.Reflection.TargetInvocationException || 
-                                                  ex is System.ArgumentException)
-                {
-                    LogPatchError("WorkshopsCountLimit", ex);
-                }
+            }
+            catch (System.Exception ex)
+            {
+                LogPatchError("Clan.WorkshopsCountLimit (alternative)", ex);
             }
 
-            if (!patchApplied)
+            if (patchCount == 0)
             {
-                Debug.Print("[LordLife:Workshop] WARNING: No workshop limit patch was applied. Workshop licenses may not work correctly.");
+                Debug.Print("[LordLife:Workshop] WARNING: No workshop limit patches were applied. Workshop licenses may not work correctly.");
+#if DEBUG
+                // Diagnostic output for debugging - only in debug builds
+                Debug.Print("[LordLife:Workshop] Available Clan properties: " + string.Join(", ", typeof(Clan).GetProperties().Select(p => p.Name)));
+#endif
+            }
+            else
+            {
+                Debug.Print($"[LordLife:Workshop] Applied {patchCount} workshop limit patch(es) successfully.");
             }
         }
 
         /// <summary>
         /// Postfix patch for Campaign.MaximumWorkshopsPlayerCanHave property.
-        /// This is the primary patch target for controlling the player's workshop limit.
+        /// This controls the player's workshop limit in game logic.
         /// </summary>
         private static void MaximumWorkshopsPlayerCanHavePostfix(ref int __result)
         {
@@ -113,32 +146,39 @@ namespace Bannerlord.LordLife.Workshop
                     {
                         int originalResult = __result;
                         __result += extraLicenses;
-                        Debug.Print($"[LordLife:Workshop] MaximumWorkshopsPlayerCanHave: {originalResult} + {extraLicenses} (extra licenses) = {__result}");
+                        Debug.Print($"[LordLife:Workshop] MaximumWorkshopsPlayerCanHave: {originalResult} + {extraLicenses} extra = {__result}");
                     }
                 }
             }
-            catch (System.NullReferenceException ex)
+            catch (System.Exception ex)
             {
-                Debug.Print($"[LordLife:Workshop] Null reference in MaximumWorkshopsPlayerCanHavePostfix: {ex.Message}");
+                Debug.Print($"[LordLife:Workshop] Error in MaximumWorkshopsPlayerCanHavePostfix: {ex.Message}");
             }
         }
 
         /// <summary>
-        /// Postfix patch for Clan.WorkshopsCountLimit property (secondary fallback).
-        /// Adds extra licenses purchased by the player's clan only.
-        /// This safely handles both player and AI clans by checking clan context.
+        /// Postfix patch for Clan.WorkshopCountLimit property.
+        /// This is used by the UI to display the workshop limit.
+        /// Adds extra licenses purchased by any clan.
         /// </summary>
-        private static void WorkshopLimitPropertyPostfix(Clan __instance, ref int __result)
+        private static void WorkshopCountLimitPostfix(Clan __instance, ref int __result)
         {
-            if (__instance != null)
+            try
             {
-                int extraLicenses = WorkshopLicenseManager.Instance.GetExtraLicenses(__instance.StringId);
-                if (extraLicenses > 0)
+                if (__instance != null)
                 {
-                    int originalResult = __result;
-                    __result += extraLicenses;
-                    Debug.Print($"[LordLife:Workshop] Workshop limit for {__instance.Name}: {originalResult} + {extraLicenses} (extra licenses) = {__result}");
+                    int extraLicenses = WorkshopLicenseManager.Instance.GetExtraLicenses(__instance.StringId);
+                    if (extraLicenses > 0)
+                    {
+                        int originalResult = __result;
+                        __result += extraLicenses;
+                        Debug.Print($"[LordLife:Workshop] WorkshopCountLimit for {__instance.Name}: {originalResult} + {extraLicenses} extra = {__result}");
+                    }
                 }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.Print($"[LordLife:Workshop] Error in WorkshopCountLimitPostfix: {ex.Message}");
             }
         }
     }
