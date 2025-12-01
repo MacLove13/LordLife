@@ -2,16 +2,19 @@ using TaleWorlds.CampaignSystem;
 using TaleWorlds.Core;
 using TaleWorlds.InputSystem;
 using TaleWorlds.Library;
+using TaleWorlds.MountAndBlade;
+using TaleWorlds.ScreenSystem;
 
 namespace Bannerlord.LordLife.DebugTools
 {
     /// <summary>
     /// Debug behavior that provides development shortcuts
-    /// Currently supports pressing K to add 10000 gold to the player
+    /// - Pressing K when inventory is open: adds 100,000 gold to the player
+    /// - Pressing K during battle: kills all enemy troops
     /// </summary>
     public class DebugBehavior : CampaignBehaviorBase
     {
-        private const int GOLD_AMOUNT = 10000;
+        private const int GOLD_AMOUNT_INVENTORY = 100000;
 
         public override void RegisterEvents()
         {
@@ -39,8 +42,35 @@ namespace Bannerlord.LordLife.DebugTools
             // Check if K key is released (to prevent multiple rapid triggers)
             if (Input.IsKeyReleased(InputKey.K))
             {
+                HandleKKeyPress();
+            }
+        }
+
+        private void HandleKKeyPress()
+        {
+            // Check if we're in a mission (battle)
+            if (Mission.Current != null && Mission.Current.Mode != MissionMode.Conversation)
+            {
+                KillAllEnemyTroops();
+            }
+            // Check if inventory screen is open
+            else if (IsInventoryScreenOpen())
+            {
                 AddGoldToPlayer();
             }
+        }
+
+        private bool IsInventoryScreenOpen()
+        {
+            // Check if the top screen is an inventory screen
+            // In Bannerlord, the inventory screen class name contains "Inventory"
+            var topScreen = ScreenManager.TopScreen;
+            if (topScreen != null)
+            {
+                string screenName = topScreen.GetType().Name;
+                return screenName.Contains("Inventory") || screenName.Contains("inventory");
+            }
+            return false;
         }
 
         private void AddGoldToPlayer()
@@ -53,17 +83,72 @@ namespace Bannerlord.LordLife.DebugTools
             }
 
             // Add gold to the player
-            Hero.MainHero.ChangeHeroGold(GOLD_AMOUNT);
+            Hero.MainHero.ChangeHeroGold(GOLD_AMOUNT_INVENTORY);
 
             // Display message to the player
             InformationManager.DisplayMessage(
                 new InformationMessage(
-                    $"[Debug] Adicionado {GOLD_AMOUNT} denários ao jogador!",
+                    $"[Debug] Adicionado {GOLD_AMOUNT_INVENTORY} denários ao jogador!",
                     Colors.Yellow
                 )
             );
 
-            TaleWorlds.Library.Debug.Print($"[LordLife:Debug] Adicionado {GOLD_AMOUNT} denários ao {Hero.MainHero.Name}");
+            TaleWorlds.Library.Debug.Print($"[LordLife:Debug] Adicionado {GOLD_AMOUNT_INVENTORY} denários ao {Hero.MainHero.Name}");
+        }
+
+        private void KillAllEnemyTroops()
+        {
+            // Check if we're in a valid mission
+            if (Mission.Current == null)
+            {
+                TaleWorlds.Library.Debug.Print("[LordLife:Debug] Não está em uma missão.");
+                return;
+            }
+
+            // Get the player's agent to determine enemy side
+            Agent playerAgent = Mission.Current.MainAgent;
+            if (playerAgent == null)
+            {
+                TaleWorlds.Library.Debug.Print("[LordLife:Debug] Agente do jogador não encontrado.");
+                return;
+            }
+
+            int enemiesKilled = 0;
+
+            // Iterate through all active agents in the mission
+            foreach (Agent agent in Mission.Current.Agents)
+            {
+                // Skip if agent is null, already dead, or is the player
+                if (agent == null || !agent.IsActive() || agent == playerAgent)
+                    continue;
+
+                // Check if the agent is an enemy (different team from player)
+                if (agent.Team != null && playerAgent.Team != null && agent.Team.IsEnemyOf(playerAgent.Team))
+                {
+                    // Kill the enemy agent by dealing massive damage
+                    Blow blow = new Blow(playerAgent.Index);
+                    blow.DamageType = DamageTypes.Blunt;
+                    blow.BoneIndex = agent.Monster.ThoraxLookDirectionBoneIndex;
+                    blow.BaseMagnitude = 10000f;
+                    blow.InflictedDamage = 10000;
+                    blow.SwingDirection = agent.LookDirection;
+                    blow.Direction = agent.LookDirection;
+                    blow.DamageCalculated = true;
+                    
+                    agent.Die(blow);
+                    enemiesKilled++;
+                }
+            }
+
+            // Display message to the player
+            InformationManager.DisplayMessage(
+                new InformationMessage(
+                    $"[Debug] {enemiesKilled} tropas inimigas eliminadas!",
+                    Colors.Red
+                )
+            );
+
+            TaleWorlds.Library.Debug.Print($"[LordLife:Debug] {enemiesKilled} tropas inimigas eliminadas.");
         }
     }
 }
