@@ -14,6 +14,9 @@ namespace Bannerlord.LordLife
     {
         // Store hero StringIds instead of Hero objects for proper serialization
         private Dictionary<string, string> _settlementPriestIds = new Dictionary<string, string>();
+        
+        // Track whether we added the priest to the settlement in the current church menu session
+        private bool _priestAddedToSettlement = false;
 
         public override void RegisterEvents()
         {
@@ -95,6 +98,7 @@ namespace Bannerlord.LordLife
                 {
                     // Use EnterSettlementAction to make the priest appear in the settlement overlay
                     EnterSettlementAction.ApplyForCharacterOnly(priest, settlement);
+                    _priestAddedToSettlement = true;
                 }
             }
         }
@@ -262,15 +266,20 @@ namespace Bannerlord.LordLife
                 args =>
                 {
                     // Remove priest from settlement when leaving church to prevent appearing in tavern
-                    Settlement? settlement = Settlement.CurrentSettlement;
-                    if (settlement != null)
+                    // Only remove if we added them in OnIgrejaMenuInit
+                    if (_priestAddedToSettlement)
                     {
-                        Hero? priest = GetExistingPriestForSettlement(settlement);
-                        if (priest != null && priest.CurrentSettlement == settlement)
+                        Settlement? settlement = Settlement.CurrentSettlement;
+                        if (settlement != null)
                         {
-                            LeaveSettlementAction.ApplyForCharacterOnly(priest);
-                            Debug.Print($"[LordLife] Padre removido da settlement ao sair da igreja");
+                            Hero? priest = GetExistingPriestForSettlement(settlement);
+                            if (priest != null && priest.CurrentSettlement == settlement)
+                            {
+                                LeaveSettlementAction.ApplyForCharacterOnly(priest);
+                                Debug.Print($"[LordLife] Padre removido da settlement ao sair da igreja");
+                            }
                         }
+                        _priestAddedToSettlement = false;
                     }
                     GameMenu.SwitchToMenu("town");
                 },
