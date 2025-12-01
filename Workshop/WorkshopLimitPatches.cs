@@ -12,18 +12,6 @@ namespace Bannerlord.LordLife.Workshop
     public static class WorkshopLimitPatches
     {
         /// <summary>
-        /// Patch for the Clan.WorkshopCountLimit getter.
-        /// This adds extra workshop licenses to the default limit.
-        /// </summary>
-        [HarmonyPatch(typeof(Clan), "CompanionLimit", MethodType.Getter)]
-        [HarmonyPostfix]
-        public static void CompanionLimitPostfix(Clan __instance, ref int __result)
-        {
-            // This is a fallback in case we can't find the WorkshopCountLimit property
-            // We won't modify companion limit, but this shows the pattern
-        }
-
-        /// <summary>
         /// Attempts to patch the workshop count limit.
         /// This may vary depending on the Bannerlord version.
         /// </summary>

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using TaleWorlds.SaveSystem;
 
@@ -9,7 +10,8 @@ namespace Bannerlord.LordLife.Workshop
     /// </summary>
     public class WorkshopLicenseManager
     {
-        private static WorkshopLicenseManager? _instance;
+        private static readonly Lazy<WorkshopLicenseManager> _lazyInstance = 
+            new Lazy<WorkshopLicenseManager>(() => new WorkshopLicenseManager());
 
         /// <summary>
         /// Dictionary storing the number of extra workshop licenses per clan.
@@ -21,24 +23,15 @@ namespace Bannerlord.LordLife.Workshop
         {
         }
 
-        public static WorkshopLicenseManager Instance
-        {
-            get
-            {
-                if (_instance == null)
-                {
-                    _instance = new WorkshopLicenseManager();
-                }
-                return _instance;
-            }
-        }
+        public static WorkshopLicenseManager Instance => _lazyInstance.Value;
 
         /// <summary>
         /// Resets the singleton instance (used when loading new games).
         /// </summary>
         public static void ResetInstance()
         {
-            _instance = new WorkshopLicenseManager();
+            // Clear the existing data
+            _lazyInstance.Value._extraLicenses = new Dictionary<string, int>();
         }
 
         /// <summary>
@@ -58,14 +51,7 @@ namespace Bannerlord.LordLife.Workshop
         /// </summary>
         public void AddWorkshopLicense(string clanStringId)
         {
-            if (_extraLicenses.ContainsKey(clanStringId))
-            {
-                _extraLicenses[clanStringId]++;
-            }
-            else
-            {
-                _extraLicenses[clanStringId] = 1;
-            }
+            _extraLicenses[clanStringId] = _extraLicenses.TryGetValue(clanStringId, out var count) ? count + 1 : 1;
         }
 
         /// <summary>
@@ -78,10 +64,11 @@ namespace Bannerlord.LordLife.Workshop
 
         /// <summary>
         /// Gets the extra licenses data for saving.
+        /// Returns a copy to prevent external modifications.
         /// </summary>
         public Dictionary<string, int> GetDataForSaving()
         {
-            return _extraLicenses;
+            return new Dictionary<string, int>(_extraLicenses);
         }
     }
 }
