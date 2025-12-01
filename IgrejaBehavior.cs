@@ -112,8 +112,9 @@ namespace Bannerlord.LordLife
 
             if (priest != null)
             {
+                string priestTitle = GetPriestTitleForCulture(settlement.Culture);
                 priest.SetName(
-                    new TaleWorlds.Localization.TextObject("{=lordlife_padre_nome}Padre " + priest.FirstName),
+                    new TaleWorlds.Localization.TextObject("{=lordlife_padre_nome}" + priestTitle + " " + priest.FirstName),
                     priest.FirstName
                 );
 
@@ -135,6 +136,28 @@ namespace Bannerlord.LordLife
             }
 
             return priest;
+        }
+
+        private string GetPriestTitleForCulture(CultureObject culture)
+        {
+            // Retorna o título do padre apropriado baseado na cultura
+            string cultureId = culture.StringId;
+            
+            if (cultureId.Equals("empire", System.StringComparison.OrdinalIgnoreCase))
+                return "Pontifex";
+            else if (cultureId.Equals("vlandia", System.StringComparison.OrdinalIgnoreCase))
+                return "Priest";
+            else if (cultureId.Equals("sturgia", System.StringComparison.OrdinalIgnoreCase))
+                return "Volkhv";
+            else if (cultureId.Equals("aserai", System.StringComparison.OrdinalIgnoreCase))
+                return "Imam";
+            else if (cultureId.Equals("khuzait", System.StringComparison.OrdinalIgnoreCase))
+                return "Shaman";
+            else if (cultureId.Equals("battania", System.StringComparison.OrdinalIgnoreCase))
+                return "Druid";
+            else
+                // Fallback para "Padre" se a cultura não for reconhecida
+                return "Padre";
         }
 
         private CharacterObject? GetNotableTemplate(CultureObject culture)
