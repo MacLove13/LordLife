@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Bannerlord.LordLife.Dialogues
 {
@@ -8,6 +9,9 @@ namespace Bannerlord.LordLife.Dialogues
     /// </summary>
     public static class DialogueDefinitions
     {
+        // Cached death condolence dialogue for quick access
+        private static DialogueEntry? _cachedDeathCondolenceDialogue;
+
         /// <summary>
         /// All available dialogue entries.
         /// To add a new dialogue:
@@ -375,18 +379,15 @@ namespace Bannerlord.LordLife.Dialogues
         }
 
         /// <summary>
-        /// Gets the death condolence dialogue.
+        /// Gets the death condolence dialogue (cached for performance).
         /// </summary>
         public static DialogueEntry? GetDeathCondolenceDialogue()
         {
-            foreach (var dialogue in AllDialogues)
+            if (_cachedDeathCondolenceDialogue == null)
             {
-                if (dialogue.Type == DialogueType.DeathCondolence)
-                {
-                    return dialogue;
-                }
+                _cachedDeathCondolenceDialogue = AllDialogues.FirstOrDefault(d => d.Type == DialogueType.DeathCondolence);
             }
-            return null;
+            return _cachedDeathCondolenceDialogue;
         }
     }
 }

@@ -37,11 +37,15 @@ namespace Bannerlord.LordLife.Dialogues
         // Deceased relative for condolence dialogue
         private Hero? _currentDeceasedRelative;
 
+        // Index of the selected response for the current dialogue
+        private int _selectedResponseIndex;
+
         public DialogueCampaignBehavior()
         {
             _dialogueCooldowns = new Dictionary<string, Dictionary<string, DialogueCooldownEntry>>();
             _deceasedRelatives = new Dictionary<string, List<string>>();
             _activeWars = new Dictionary<string, HashSet<string>>();
+            _selectedResponseIndex = -1;
         }
 
         public override void RegisterEvents()
@@ -203,21 +207,36 @@ namespace Bannerlord.LordLife.Dialogues
         {
             float currentDay = CampaignTime.Now.ToDays;
 
-            foreach (var heroEntry in _dialogueCooldowns.ToList())
+            // Collect keys to remove to avoid modifying collection during iteration
+            var heroKeysToRemove = new List<string>();
+
+            foreach (var heroEntry in _dialogueCooldowns)
             {
-                foreach (var dialogueEntry in heroEntry.Value.ToList())
+                var dialogueKeysToRemove = new List<string>();
+
+                foreach (var dialogueEntry in heroEntry.Value)
                 {
                     // Only clean up basic/relationship cooldowns, not war/death ones
                     if (dialogueEntry.Value.UnlocksAtDay > 0 && dialogueEntry.Value.UnlocksAtDay < currentDay - 30)
                     {
-                        heroEntry.Value.Remove(dialogueEntry.Key);
+                        dialogueKeysToRemove.Add(dialogueEntry.Key);
                     }
+                }
+
+                foreach (var key in dialogueKeysToRemove)
+                {
+                    heroEntry.Value.Remove(key);
                 }
 
                 if (heroEntry.Value.Count == 0)
                 {
-                    _dialogueCooldowns.Remove(heroEntry.Key);
+                    heroKeysToRemove.Add(heroEntry.Key);
                 }
+            }
+
+            foreach (var key in heroKeysToRemove)
+            {
+                _dialogueCooldowns.Remove(key);
             }
         }
 
@@ -462,12 +481,13 @@ namespace Bannerlord.LordLife.Dialogues
         {
             _currentDialogue = dialogue;
             _currentConversationHero = Hero.OneToOneConversationHero;
+            _selectedResponseIndex = -1;
 
             // Select a random response
             if (dialogue.Responses.Count > 0)
             {
-                int responseIndex = MBRandom.RandomInt(dialogue.Responses.Count);
-                var response = dialogue.Responses[responseIndex];
+                _selectedResponseIndex = MBRandom.RandomInt(dialogue.Responses.Count);
+                var response = dialogue.Responses[_selectedResponseIndex];
 
                 string responseText = response.Text;
 
@@ -491,43 +511,32 @@ namespace Bannerlord.LordLife.Dialogues
                 return;
             }
 
-            // Apply relationship change from the selected response
-            if (dialogue.Responses.Count > 0)
+            // Apply relationship change from the selected response using stored index
+            if (_selectedResponseIndex >= 0 && _selectedResponseIndex < dialogue.Responses.Count)
             {
-                // We need to track which response was selected - use the text variable
-                string selectedResponseText = MBTextManager.GetLocalizedText("{LORDLIFE_NPC_RESPONSE}");
+                var response = dialogue.Responses[_selectedResponseIndex];
 
-                foreach (var response in dialogue.Responses)
+                if (response.RelationshipChange != 0)
                 {
-                    string responseText = response.Text;
-                    if (dialogue.Type == DialogueType.DeathCondolence && _currentDeceasedRelative != null)
+                    ChangeRelationAction.ApplyRelationChangeBetweenHeroes(
+                        Hero.MainHero,
+                        _currentConversationHero,
+                        response.RelationshipChange,
+                        true);
+
+                    if (response.RelationshipChange > 0)
                     {
-                        responseText = responseText.Replace("{RELATIVE_NAME}", _currentDeceasedRelative.Name.ToString());
+                        InformationManager.DisplayMessage(
+                            new InformationMessage(
+                                $"Relacionamento com {_currentConversationHero.Name} aumentou em {response.RelationshipChange}.",
+                                Colors.Green));
                     }
-
-                    if (responseText == selectedResponseText && response.RelationshipChange != 0)
+                    else
                     {
-                        ChangeRelationAction.ApplyRelationChangeBetweenHeroes(
-                            Hero.MainHero,
-                            _currentConversationHero,
-                            response.RelationshipChange,
-                            true);
-
-                        if (response.RelationshipChange > 0)
-                        {
-                            InformationManager.DisplayMessage(
-                                new InformationMessage(
-                                    $"Relacionamento com {_currentConversationHero.Name} aumentou em {response.RelationshipChange}.",
-                                    Colors.Green));
-                        }
-                        else if (response.RelationshipChange < 0)
-                        {
-                            InformationManager.DisplayMessage(
-                                new InformationMessage(
-                                    $"Relacionamento com {_currentConversationHero.Name} diminuiu em {-response.RelationshipChange}.",
-                                    Colors.Red));
-                        }
-                        break;
+                        InformationManager.DisplayMessage(
+                            new InformationMessage(
+                                $"Relacionamento com {_currentConversationHero.Name} diminuiu em {-response.RelationshipChange}.",
+                                Colors.Red));
                     }
                 }
             }
@@ -539,6 +548,7 @@ namespace Bannerlord.LordLife.Dialogues
             _currentDialogue = null;
             _currentConversationHero = null;
             _currentDeceasedRelative = null;
+            _selectedResponseIndex = -1;
         }
 
         /// <summary>
