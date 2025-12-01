@@ -250,11 +250,86 @@ namespace Bannerlord.LordLife.Dialogues
         /// </summary>
         private void RegisterDialogues(CampaignGameStarter campaignGameStarter)
         {
-            // Register all dialogue entries
+            // Register the main conversation entry point
+            RegisterMainConversationEntry(campaignGameStarter);
+            
+            // Register all dialogue entries under the submenu
             foreach (var dialogue in DialogueDefinitions.AllDialogues)
             {
                 RegisterDialogueEntry(campaignGameStarter, dialogue);
             }
+            
+            // Register the back option
+            RegisterBackOption(campaignGameStarter);
+        }
+
+        /// <summary>
+        /// Registers the main conversation entry that opens the dialogue submenu.
+        /// </summary>
+        private void RegisterMainConversationEntry(CampaignGameStarter campaignGameStarter)
+        {
+            // Main conversation option
+            campaignGameStarter.AddPlayerLine(
+                "lordlife_main_conversation",
+                "hero_main_options",
+                "lordlife_dialogue_submenu",
+                "{=lordlife_main_conversation}Conversar com {NPC_NAME}...",
+                () => CanShowMainConversation(),
+                () => OnMainConversationSelected(),
+                150, // High priority to appear near the top
+                null,
+                null);
+        }
+
+        /// <summary>
+        /// Registers the back option to return from submenu to main conversation.
+        /// </summary>
+        private void RegisterBackOption(CampaignGameStarter campaignGameStarter)
+        {
+            campaignGameStarter.AddPlayerLine(
+                "lordlife_back",
+                "lordlife_dialogue_submenu",
+                "hero_main_options",
+                "{=lordlife_back}Voltar.",
+                null,
+                null,
+                0, // Low priority to appear at the bottom
+                null,
+                null);
+        }
+
+        /// <summary>
+        /// Determines if the main conversation option should be shown.
+        /// </summary>
+        private bool CanShowMainConversation()
+        {
+            return IsValidConversationHero(Hero.OneToOneConversationHero);
+        }
+
+        /// <summary>
+        /// Called when the main conversation option is selected.
+        /// Sets the NPC name variable for display.
+        /// </summary>
+        private void OnMainConversationSelected()
+        {
+            Hero conversationHero = Hero.OneToOneConversationHero;
+            if (conversationHero != null)
+            {
+                MBTextManager.SetTextVariable("NPC_NAME", conversationHero.Name);
+            }
+        }
+
+        /// <summary>
+        /// Checks if a hero is valid for conversations (not null and valid type).
+        /// </summary>
+        private bool IsValidConversationHero(Hero? hero)
+        {
+            if (hero == null)
+            {
+                return false;
+            }
+            
+            return IsValidHeroType(hero);
         }
 
         /// <summary>
@@ -266,10 +341,10 @@ namespace Bannerlord.LordLife.Dialogues
             string npcResponseId = $"lordlife_response_{dialogue.Id}";
             string continueId = $"lordlife_continue_{dialogue.Id}";
 
-            // Player dialogue option
+            // Player dialogue option (now under the submenu)
             campaignGameStarter.AddPlayerLine(
                 playerLineId,
-                "hero_main_options",
+                "lordlife_dialogue_submenu",
                 npcResponseId,
                 $"{{={playerLineId}}}{GetDialoguePlayerText(dialogue)}",
                 () => CanShowDialogue(dialogue),
@@ -289,11 +364,11 @@ namespace Bannerlord.LordLife.Dialogues
                 100,
                 null);
 
-            // Continue/back option
+            // Continue/back option (now returns to submenu instead of main menu)
             campaignGameStarter.AddPlayerLine(
                 continueId,
                 continueId,
-                "hero_main_options",
+                "lordlife_dialogue_submenu",
                 "{=lordlife_continue}Entendo...",
                 null,
                 null,
@@ -322,13 +397,8 @@ namespace Bannerlord.LordLife.Dialogues
         {
             Hero conversationHero = Hero.OneToOneConversationHero;
 
-            if (conversationHero == null)
-            {
-                return false;
-            }
-
-            // Check if hero is a valid type (lord, companion, notable)
-            if (!IsValidHeroType(conversationHero))
+            // Check if hero is valid for conversations
+            if (!IsValidConversationHero(conversationHero))
             {
                 return false;
             }
