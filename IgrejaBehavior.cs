@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Actions;
 using TaleWorlds.CampaignSystem.GameMenus;
@@ -10,7 +11,8 @@ namespace Bannerlord.LordLife
 {
     public class IgrejaBehavior : CampaignBehaviorBase
     {
-        private Dictionary<string, Hero> _settlementPriests = new Dictionary<string, Hero>();
+        // Store hero StringIds instead of Hero objects for proper serialization
+        private Dictionary<string, string> _settlementPriestIds = new Dictionary<string, string>();
 
         public override void RegisterEvents()
         {
@@ -19,7 +21,10 @@ namespace Bannerlord.LordLife
 
         public override void SyncData(IDataStore dataStore)
         {
-            dataStore.SyncData("_settlementPriests", ref _settlementPriests);
+            dataStore.SyncData("_settlementPriestIds", ref _settlementPriestIds);
+            
+            // Ensure dictionary is initialized after loading
+            _settlementPriestIds ??= new Dictionary<string, string>();
         }
 
         private void OnSessionLaunched(CampaignGameStarter campaignGameStarter)
@@ -41,19 +46,23 @@ namespace Bannerlord.LordLife
         {
             string settlementId = settlement.StringId;
 
-            if (_settlementPriests.TryGetValue(settlementId, out Hero? existingPriest))
+            if (_settlementPriestIds.TryGetValue(settlementId, out string? existingPriestId))
             {
+                // Try to find the hero by StringId
+                Hero? existingPriest = Hero.AllAliveHeroes.FirstOrDefault(h => h.StringId == existingPriestId)
+                    ?? Hero.DeadOrDisabledHeroes.FirstOrDefault(h => h.StringId == existingPriestId);
+                
                 if (existingPriest != null && existingPriest.IsAlive)
                 {
                     return existingPriest;
                 }
-                _settlementPriests.Remove(settlementId);
+                _settlementPriestIds.Remove(settlementId);
             }
 
             Hero? priest = CreatePriest(settlement);
             if (priest != null)
             {
-                _settlementPriests[settlementId] = priest;
+                _settlementPriestIds[settlementId] = priest.StringId;
             }
             return priest;
         }

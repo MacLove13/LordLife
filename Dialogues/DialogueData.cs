@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using TaleWorlds.SaveSystem;
 
 namespace Bannerlord.LordLife.Dialogues
 {
@@ -113,21 +114,25 @@ namespace Bannerlord.LordLife.Dialogues
     /// <summary>
     /// Tracks cooldown state for a dialogue with a specific NPC.
     /// </summary>
+    [SaveableClass(1)]
     public class DialogueCooldownEntry
     {
         /// <summary>
         /// The game day when this dialogue can be used again (for Basic/Relationship types).
         /// </summary>
+        [SaveableField(1)]
         public float UnlocksAtDay { get; set; }
 
         /// <summary>
         /// For War dialogues: the war ID that was active when dialogue was used.
         /// </summary>
+        [SaveableField(2)]
         public string? LastWarId { get; set; }
 
         /// <summary>
         /// For DeathCondolence dialogues: the ID of the deceased relative that was condoled.
         /// </summary>
+        [SaveableField(3)]
         public string? LastCondoledRelativeId { get; set; }
 
         public DialogueCooldownEntry()
