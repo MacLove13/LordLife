@@ -35,6 +35,33 @@ namespace Bannerlord.LordLife.Workshop
         {
             int patchCount = 0;
 
+            // Patch 0: Hero.MaximumOwnedWorkshopCount property - Critical for workshop purchase validation
+            try
+            {
+                var heroType = typeof(Hero);
+                var maxWorkshopProperty = AccessTools.Property(heroType, "MaximumOwnedWorkshopCount");
+                
+                if (maxWorkshopProperty != null)
+                {
+                    var getMethod = maxWorkshopProperty.GetGetMethod();
+                    if (getMethod != null)
+                    {
+                        var postfix = new HarmonyMethod(typeof(WorkshopLimitPatches), nameof(MaximumOwnedWorkshopCountPostfix));
+                        harmony.Patch(getMethod, postfix: postfix);
+                        Debug.Print("[LordLife:Workshop] Successfully patched Hero.MaximumOwnedWorkshopCount property");
+                        patchCount++;
+                    }
+                }
+                else
+                {
+                    Debug.Print("[LordLife:Workshop] Hero.MaximumOwnedWorkshopCount property not found");
+                }
+            }
+            catch (System.Exception ex)
+            {
+                LogPatchError("Hero.MaximumOwnedWorkshopCount", ex);
+            }
+
             // Patch 1: Clan.WorkshopCountLimit property - Used by UI for display
             try
             {
@@ -127,6 +154,31 @@ namespace Bannerlord.LordLife.Workshop
             else
             {
                 Debug.Print($"[LordLife:Workshop] Applied {patchCount} workshop limit patch(es) successfully.");
+            }
+        }
+
+        /// <summary>
+        /// Postfix patch for Hero.MaximumOwnedWorkshopCount property.
+        /// This is the critical property used by the game when validating workshop purchases.
+        /// </summary>
+        private static void MaximumOwnedWorkshopCountPostfix(Hero __instance, ref int __result)
+        {
+            try
+            {
+                if (__instance != null && __instance.Clan != null)
+                {
+                    int extraLicenses = WorkshopLicenseManager.Instance.GetExtraLicenses(__instance.Clan.StringId);
+                    if (extraLicenses > 0)
+                    {
+                        int originalResult = __result;
+                        __result += extraLicenses;
+                        Debug.Print($"[LordLife:Workshop] MaximumOwnedWorkshopCount for {__instance.Name}: {originalResult} + {extraLicenses} extra = {__result}");
+                    }
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.Print($"[LordLife:Workshop] Error in MaximumOwnedWorkshopCountPostfix: {ex.Message}");
             }
         }
 

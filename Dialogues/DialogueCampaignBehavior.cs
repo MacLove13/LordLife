@@ -306,11 +306,21 @@ namespace Bannerlord.LordLife.Dialogues
             campaignGameStarter.AddPlayerLine(
                 "lordlife_back",
                 "lordlife_dialogue_submenu",
-                "lordlife_dialogue_submenu_npc",
+                "lordlife_back_confirm",
                 "{=hero_main_options}Voltar.",
                 null,
                 null,
                 0,
+                null);
+
+            campaignGameStarter.AddDialogLine(
+                "lordlife_back_confirm",
+                "lordlife_back_confirm",
+                "hero_main_options",
+                "{=lordlife_workshop_cancel_response}Tudo bem.",
+                null,
+                null,
+                100,
                 null);
         }
 
