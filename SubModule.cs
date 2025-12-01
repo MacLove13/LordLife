@@ -37,6 +37,7 @@ namespace Bannerlord.LordLife
         {
             base.OnGameStart(game, gameStarterObject);
 
+            // Works with both Campaign (Story Mode) and Sandbox modes
             if (gameStarterObject is CampaignGameStarter campaignGameStarter)
             {
                 // Add MarryAnyone campaign behavior
@@ -46,6 +47,14 @@ namespace Bannerlord.LordLife
                 // Add Dialogues campaign behavior
                 campaignGameStarter.AddBehavior(new DialogueCampaignBehavior());
                 Debug.Print("[LordLife:Dialogues] CampaignBehavior adicionado.");
+
+                // Add Igreja campaign behavior
+                campaignGameStarter.AddBehavior(new IgrejaBehavior());
+                Debug.Print("[LordLife] IgrejaBehavior registrado.");
+
+                // Add Low Loyalty Voting behavior
+                campaignGameStarter.AddBehavior(new LowLoyaltyVotingBehavior());
+                Debug.Print("[LordLife:LowLoyaltyVoting] CampaignBehavior adicionado.");
             }
         }
 
@@ -59,18 +68,6 @@ namespace Bannerlord.LordLife
                     Colors.Green
                 )
             );
-        }
-
-        protected override void OnGameStart(Game game, IGameStarter gameStarterObject)
-        {
-            base.OnGameStart(game, gameStarterObject);
-
-            // Works with both Campaign (Story Mode) and Sandbox modes
-            if (gameStarterObject is CampaignGameStarter campaignStarter)
-            {
-                campaignStarter.AddBehavior(new IgrejaBehavior());
-                Debug.Print("[LordLife] IgrejaBehavior registrado.");
-            }
         }
     }
 }
