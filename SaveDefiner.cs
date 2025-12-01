@@ -24,6 +24,8 @@ namespace Bannerlord.LordLife
         protected override void DefineContainerDefinitions()
         {
             // Register container types used by the mod
+            ConstructContainerDefinition(typeof(System.Collections.Generic.Dictionary<string, string>));
+            ConstructContainerDefinition(typeof(System.Collections.Generic.Dictionary<string, int>));
             ConstructContainerDefinition(typeof(System.Collections.Generic.Dictionary<string, DialogueCooldownEntry>));
             ConstructContainerDefinition(typeof(System.Collections.Generic.Dictionary<string, System.Collections.Generic.Dictionary<string, DialogueCooldownEntry>>));
             ConstructContainerDefinition(typeof(System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<string>>));
