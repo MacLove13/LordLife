@@ -26,6 +26,8 @@ namespace Bannerlord.LordLife.Dialogues
 
         // Tracks active wars for war dialogue reset logic
         // [KingdomId] = List of enemy kingdom IDs
+        // Note: Using List instead of HashSet for compatibility with TaleWorlds.SaveSystem.
+        // Uniqueness is maintained manually via Contains() checks before adding.
         private Dictionary<string, List<string>> _activeWars;
 
         // Current dialogue being used (for consequence methods)
@@ -180,6 +182,7 @@ namespace Bannerlord.LordLife.Dialogues
                     if (kingdom.IsAtWarWith(otherKingdom))
                     {
                         string enemyId = otherKingdom.StringId;
+                        // Ensure uniqueness (expected list size is small, typically < 10 kingdoms)
                         if (!_activeWars[kingdomId].Contains(enemyId))
                         {
                             _activeWars[kingdomId].Add(enemyId);

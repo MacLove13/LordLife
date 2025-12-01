@@ -19,6 +19,9 @@ namespace Bannerlord.LordLife
         private Dictionary<string, int> _lowLoyaltyDays;
 
         // Tracks settlements that are currently under voting to avoid duplicate votes
+        // Note: Using List instead of HashSet for compatibility with TaleWorlds.SaveSystem.
+        // Uniqueness is maintained manually via Contains() checks before adding.
+        // The expected size is small (typically < 10 settlements), so O(n) Contains is acceptable.
         private List<string> _settlementsUnderVoting;
 
         private const float LOYALTY_THRESHOLD = 21f;
