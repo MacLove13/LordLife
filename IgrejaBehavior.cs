@@ -14,6 +14,9 @@ namespace Bannerlord.LordLife
     {
         // Store hero StringIds instead of Hero objects for proper serialization
         private Dictionary<string, string> _settlementPriestIds = new Dictionary<string, string>();
+        
+        // Track whether we added the priest to the settlement in the current church menu session
+        private bool _priestAddedToSettlement = false;
 
         public override void RegisterEvents()
         {
@@ -43,7 +46,7 @@ namespace Bannerlord.LordLife
             return null;
         }
 
-        private Hero? GetOrCreatePriestForSettlement(Settlement settlement)
+        private Hero? GetExistingPriestForSettlement(Settlement settlement)
         {
             string settlementId = settlement.StringId;
 
@@ -60,12 +63,48 @@ namespace Bannerlord.LordLife
                 _settlementPriestIds.Remove(settlementId);
             }
 
+            return null;
+        }
+
+        private Hero? GetOrCreatePriestForSettlement(Settlement settlement)
+        {
+            Hero? existingPriest = GetExistingPriestForSettlement(settlement);
+            if (existingPriest != null)
+            {
+                return existingPriest;
+            }
+
             Hero? priest = CreatePriest(settlement);
             if (priest != null)
             {
-                _settlementPriestIds[settlementId] = priest.StringId;
+                _settlementPriestIds[settlement.StringId] = priest.StringId;
             }
             return priest;
+        }
+
+        private void OnIgrejaMenuInit(MenuCallbackArgs args)
+        {
+            // Get or create the priest for this settlement
+            Settlement? settlement = Settlement.CurrentSettlement;
+            if (settlement == null) return;
+            
+            Hero? priest = GetOrCreatePriestForSettlement(settlement);
+            if (priest != null)
+            {
+                Debug.Print($"[LordLife] Igreja: Padre presente - {priest.Name}");
+                
+                // Temporarily add priest to settlement for the overlay to show
+                // Only add if not already present (which should be the normal case)
+                if (priest.CurrentSettlement != settlement)
+                {
+                    // Use EnterSettlementAction to make the priest appear in the settlement overlay
+                    EnterSettlementAction.ApplyForCharacterOnly(priest, settlement);
+                    // Track that we added the priest so we can remove them when leaving
+                    _priestAddedToSettlement = true;
+                }
+                // If priest is already in settlement, we don't touch them or set the flag
+                // This ensures we only clean up priests we explicitly added
+            }
         }
 
         private Hero? CreatePriest(Settlement settlement)
@@ -92,17 +131,20 @@ namespace Bannerlord.LordLife
                     priest.FirstName
                 );
 
+                // Keep the priest active so it can be interacted with
                 priest.ChangeState(Hero.CharacterStates.Active);
                 
-                // Set occupation to prevent the priest from being classified as a wanderer or notable
-                // Using Occupation.NotAssigned or Special helps prevent appearance in default lists
-                priest.SetNewOccupation(Occupation.Special);
+                // Use Occupation.Artisan to prevent appearing in wanderer/tavern lists
+                priest.SetNewOccupation(Occupation.Artisan);
                 
-                // Directly set the settlement without using EnterSettlementAction
-                // This prevents the priest from being added to tavern wanderer lists
-                priest.StayingInSettlement = settlement;
+                // Remove from settlement to prevent appearing in default menus
+                // The priest will be added back only when entering the church menu
+                if (priest.CurrentSettlement != null)
+                {
+                    LeaveSettlementAction.ApplyForCharacterOnly(priest);
+                }
 
-                Debug.Print($"[LordLife] Padre criado: {priest.Name} em {settlement.Name}");
+                Debug.Print($"[LordLife] Padre criado: {priest.Name} para {settlement.Name}");
             }
 
             return priest;
@@ -141,20 +183,12 @@ namespace Bannerlord.LordLife
                 5
             );
 
-            // Create the Igreja menu
-            // Use None overlay type to prevent showing default notables list
+            // Create the Igreja menu with SettlementWithCharacters overlay to show the priest
             campaignGameStarter.AddGameMenu(
                 "town_igreja_menu",
                 "{=lordlife_igreja_desc}Você está na Igreja. O ambiente é sereno e convidativo.",
-                args =>
-                {
-                    Hero? priest = GetCurrentSettlementPriest();
-                    if (priest != null)
-                    {
-                        Debug.Print($"[LordLife] Igreja: Padre presente - {priest.Name}");
-                    }
-                },
-                GameMenu.MenuOverlayType.None
+                OnIgrejaMenuInit,
+                GameMenu.MenuOverlayType.SettlementWithCharacters
             );
 
             // Option 1: Falar com padre
@@ -235,6 +269,24 @@ namespace Bannerlord.LordLife
                 },
                 args =>
                 {
+                    // Remove priest from settlement when leaving church to prevent appearing in tavern
+                    // Only remove if we explicitly added them in OnIgrejaMenuInit (tracked by flag)
+                    // This ensures we don't accidentally remove priests that were in the settlement
+                    // for other reasons (which shouldn't happen in normal gameplay)
+                    if (_priestAddedToSettlement)
+                    {
+                        Settlement? settlement = Settlement.CurrentSettlement;
+                        if (settlement != null)
+                        {
+                            Hero? priest = GetExistingPriestForSettlement(settlement);
+                            if (priest != null && priest.CurrentSettlement == settlement)
+                            {
+                                LeaveSettlementAction.ApplyForCharacterOnly(priest);
+                                Debug.Print($"[LordLife] Padre removido da settlement ao sair da igreja");
+                            }
+                        }
+                        _priestAddedToSettlement = false;
+                    }
                     GameMenu.SwitchToMenu("town");
                 },
                 true,
