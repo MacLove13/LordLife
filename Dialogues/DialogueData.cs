@@ -114,7 +114,7 @@ namespace Bannerlord.LordLife.Dialogues
     /// <summary>
     /// Tracks cooldown state for a dialogue with a specific NPC.
     /// </summary>
-    [SaveableClass(1)]
+    
     public class DialogueCooldownEntry
     {
         /// <summary>
