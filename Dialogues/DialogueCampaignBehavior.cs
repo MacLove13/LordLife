@@ -181,12 +181,7 @@ namespace Bannerlord.LordLife.Dialogues
 
                     if (kingdom.IsAtWarWith(otherKingdom))
                     {
-                        string enemyId = otherKingdom.StringId;
-                        // Ensure uniqueness (expected list size is small, typically < 10 kingdoms)
-                        if (!_activeWars[kingdomId].Contains(enemyId))
-                        {
-                            _activeWars[kingdomId].Add(enemyId);
-                        }
+                        _activeWars[kingdomId].Add(otherKingdom.StringId);
                     }
                 }
             }
