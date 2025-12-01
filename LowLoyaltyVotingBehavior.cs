@@ -19,7 +19,7 @@ namespace Bannerlord.LordLife
         private Dictionary<string, int> _lowLoyaltyDays;
 
         // Tracks settlements that are currently under voting to avoid duplicate votes
-        private HashSet<string> _settlementsUnderVoting;
+        private List<string> _settlementsUnderVoting;
 
         private const float LOYALTY_THRESHOLD = 21f;
         private const int DAYS_REQUIRED = 30;
@@ -27,7 +27,7 @@ namespace Bannerlord.LordLife
         public LowLoyaltyVotingBehavior()
         {
             _lowLoyaltyDays = new Dictionary<string, int>();
-            _settlementsUnderVoting = new HashSet<string>();
+            _settlementsUnderVoting = new List<string>();
         }
 
         public override void RegisterEvents()
@@ -43,7 +43,7 @@ namespace Bannerlord.LordLife
 
             // Ensure dictionaries are initialized after loading
             _lowLoyaltyDays ??= new Dictionary<string, int>();
-            _settlementsUnderVoting ??= new HashSet<string>();
+            _settlementsUnderVoting ??= new List<string>();
         }
 
         /// <summary>
@@ -130,7 +130,10 @@ namespace Bannerlord.LordLife
             string settlementId = settlement.StringId;
 
             // Mark as under voting
-            _settlementsUnderVoting.Add(settlementId);
+            if (!_settlementsUnderVoting.Contains(settlementId))
+            {
+                _settlementsUnderVoting.Add(settlementId);
+            }
 
             // Reset the days counter
             _lowLoyaltyDays.Remove(settlementId);

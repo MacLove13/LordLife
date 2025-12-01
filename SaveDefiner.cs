@@ -32,7 +32,6 @@ namespace Bannerlord.LordLife
             
             // Define simple containers first
             ConstructContainerDefinition(typeof(System.Collections.Generic.List<string>));
-            ConstructContainerDefinition(typeof(System.Collections.Generic.HashSet<string>));
             
             // Define dictionaries with primitive value types
             ConstructContainerDefinition(typeof(System.Collections.Generic.Dictionary<string, string>));
@@ -43,7 +42,6 @@ namespace Bannerlord.LordLife
             
             // Define dictionaries with collection value types (must come after the collection types are defined)
             ConstructContainerDefinition(typeof(System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<string>>));
-            ConstructContainerDefinition(typeof(System.Collections.Generic.Dictionary<string, System.Collections.Generic.HashSet<string>>));
             
             // Define nested dictionaries (must come last)
             ConstructContainerDefinition(typeof(System.Collections.Generic.Dictionary<string, System.Collections.Generic.Dictionary<string, DialogueCooldownEntry>>));
