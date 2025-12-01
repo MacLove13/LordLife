@@ -136,7 +136,7 @@ namespace Bannerlord.LordLife
                         Debug.Print($"[LordLife] Igreja: Padre presente - {priest.Name}");
                     }
                 },
-                TaleWorlds.CampaignSystem.Overlay.GameOverlays.MenuOverlayType.SettlementWithBoth
+                GameMenu.MenuOverlayType.SettlementWithBoth
             );
 
             // Option 1: Falar com padre
