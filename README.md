@@ -51,11 +51,23 @@ O mod depende dos seguintes módulos (carregados antes do LordLife):
    git clone https://github.com/MacLove13/LordLife.git
    ```
 
-2. Configure o caminho do jogo no arquivo `.csproj` se necessário:
-   ```xml
-   <GameFolder>{SEU_CAMINHO}\Mount &amp; Blade II Bannerlord</GameFolder>
+2. **Copie as DLLs do Bannerlord** para a pasta de desenvolvimento:
+   
+   Execute o script PowerShell para copiar todas as DLLs necessárias do jogo:
+   ```powershell
+   .\Development\copy-dlls.ps1 -GameFolder "SEU_CAMINHO\Mount & Blade II Bannerlord"
    ```
-   > Exemplo: `D:\SteamLibrary\steamapps\common\Mount & Blade II Bannerlord`
+   
+   **Exemplo:**
+   ```powershell
+   # Steam (Windows)
+   .\Development\copy-dlls.ps1 -GameFolder "D:\SteamLibrary\steamapps\common\Mount & Blade II Bannerlord"
+   
+   # Steam (Local padrão)
+   .\Development\copy-dlls.ps1 -GameFolder "C:\Program Files (x86)\Steam\steamapps\common\Mount & Blade II Bannerlord"
+   ```
+   
+   > ⚠️ **Importante**: Este passo é obrigatório antes de compilar o projeto. As DLLs do jogo não são incluídas no repositório por questões de direitos autorais.
 
 3. Compile o projeto:
    ```bash
@@ -70,6 +82,10 @@ O mod depende dos seguintes módulos (carregados antes do LordLife):
 
 ```
 Bannerlord.LordLife/
+├── Development/
+│   ├── Bannerlord/        # DLLs do jogo (não comitadas)
+│   │   └── README.md      # Instruções sobre as DLLs
+│   └── copy-dlls.ps1      # Script para copiar DLLs do jogo
 ├── _Module/
 │   └── SubModule.xml      # Configuração do módulo para Bannerlord
 ├── Properties/
