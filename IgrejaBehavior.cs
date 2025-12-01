@@ -43,7 +43,7 @@ namespace Bannerlord.LordLife
             return null;
         }
 
-        private Hero? GetOrCreatePriestForSettlement(Settlement settlement)
+        private Hero? GetExistingPriestForSettlement(Settlement settlement)
         {
             string settlementId = settlement.StringId;
 
@@ -60,10 +60,21 @@ namespace Bannerlord.LordLife
                 _settlementPriestIds.Remove(settlementId);
             }
 
+            return null;
+        }
+
+        private Hero? GetOrCreatePriestForSettlement(Settlement settlement)
+        {
+            Hero? existingPriest = GetExistingPriestForSettlement(settlement);
+            if (existingPriest != null)
+            {
+                return existingPriest;
+            }
+
             Hero? priest = CreatePriest(settlement);
             if (priest != null)
             {
-                _settlementPriestIds[settlementId] = priest.StringId;
+                _settlementPriestIds[settlement.StringId] = priest.StringId;
             }
             return priest;
         }
@@ -251,11 +262,15 @@ namespace Bannerlord.LordLife
                 args =>
                 {
                     // Remove priest from settlement when leaving church to prevent appearing in tavern
-                    Hero? priest = GetCurrentSettlementPriest();
-                    if (priest != null && priest.CurrentSettlement != null)
+                    Settlement? settlement = Settlement.CurrentSettlement;
+                    if (settlement != null)
                     {
-                        LeaveSettlementAction.ApplyForCharacterOnly(priest);
-                        Debug.Print($"[LordLife] Padre removido da settlement ao sair da igreja");
+                        Hero? priest = GetExistingPriestForSettlement(settlement);
+                        if (priest != null && priest.CurrentSettlement == settlement)
+                        {
+                            LeaveSettlementAction.ApplyForCharacterOnly(priest);
+                            Debug.Print($"[LordLife] Padre removido da settlement ao sair da igreja");
+                        }
                     }
                     GameMenu.SwitchToMenu("town");
                 },
