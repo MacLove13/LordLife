@@ -92,7 +92,10 @@ namespace Bannerlord.LordLife
                 );
 
                 priest.ChangeState(Hero.CharacterStates.Active);
-                EnterSettlementAction.ApplyForCharacterOnly(priest, settlement);
+                
+                // Instead of using EnterSettlementAction (which adds to tavern list),
+                // directly set the current settlement to avoid appearing in wanderer lists
+                priest.StayingInSettlement = settlement;
 
                 Debug.Print($"[LordLife] Padre criado: {priest.Name} em {settlement.Name}");
             }
