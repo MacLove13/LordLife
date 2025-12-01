@@ -7,6 +7,10 @@ namespace Bannerlord.LordLife.Workshop
     /// <summary>
     /// Singleton manager to track extra workshop licenses purchased by clans.
     /// This data persists across save games.
+    /// 
+    /// Note: Thread safety - Bannerlord's campaign behaviors run on a single thread,
+    /// and save/load operations are sequential. The Lazy<T> pattern ensures safe
+    /// initialization, and subsequent operations don't require additional synchronization.
     /// </summary>
     public class WorkshopLicenseManager
     {
