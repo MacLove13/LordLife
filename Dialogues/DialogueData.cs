@@ -121,19 +121,19 @@ namespace Bannerlord.LordLife.Dialogues
         /// The game day when this dialogue can be used again (for Basic/Relationship types).
         /// </summary>
         [SaveableField(1)]
-        public float UnlocksAtDay { get; set; }
+        public float UnlocksAtDay;
 
         /// <summary>
         /// For War dialogues: the war ID that was active when dialogue was used.
         /// </summary>
         [SaveableField(2)]
-        public string? LastWarId { get; set; }
+        public string? LastWarId;
 
         /// <summary>
         /// For DeathCondolence dialogues: the ID of the deceased relative that was condoled.
         /// </summary>
         [SaveableField(3)]
-        public string? LastCondoledRelativeId { get; set; }
+        public string? LastCondoledRelativeId;
 
         public DialogueCooldownEntry()
         {
