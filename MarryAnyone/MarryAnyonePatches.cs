@@ -1,6 +1,10 @@
 using HarmonyLib;
+using System.Reflection;
 using TaleWorlds.CampaignSystem;
+using TaleWorlds.CampaignSystem.Actions;
 using TaleWorlds.CampaignSystem.CampaignBehaviors;
+using TaleWorlds.CampaignSystem.Party;
+using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.Library;
 
 namespace Bannerlord.LordLife.MarryAnyone
@@ -157,6 +161,243 @@ namespace Bannerlord.LordLife.MarryAnyone
                 Debug.Print($"[LordLife:MarryAnyone] Stack trace: {ex.StackTrace}");
                 __result = true; // Block romance on error as a safe fallback
                 return false; // Skip original method
+            }
+        }
+
+        /// <summary>
+        /// Patches MarriageAction.ApplyInternal to allow the player to marry any character (lord, companion, notable).
+        /// This overrides the vanilla IsCoupleSuitableForMarriage check and handles clan changes appropriately.
+        /// </summary>
+        [HarmonyPatch(typeof(MarriageAction), "ApplyInternal")]
+        [HarmonyPrefix]
+        public static bool ApplyInternalPrefix(Hero firstHero, Hero secondHero, bool showNotification)
+        {
+            // Only intercept if the player is involved
+            bool involvesPlayer = firstHero == Hero.MainHero || secondHero == Hero.MainHero;
+            if (!involvesPlayer)
+            {
+                return true; // Let vanilla handle NPC-NPC marriages
+            }
+
+            Hero player = Hero.MainHero;
+            Hero otherHero = firstHero == player ? secondHero : firstHero;
+
+            // Basic validation checks
+            if (otherHero == null || player == null)
+            {
+                Debug.Print("[LordLife:MarryAnyone] ApplyInternal called with null hero");
+                return false; // Skip original method
+            }
+
+            if (otherHero.Spouse != null && otherHero.Spouse != player)
+            {
+                Debug.Print($"[LordLife:MarryAnyone] {otherHero.Name} is already married to {otherHero.Spouse.Name}");
+                return false; // Skip original method
+            }
+
+            if (player.Spouse != null && player.Spouse != otherHero)
+            {
+                Debug.Print($"[LordLife:MarryAnyone] Player is already married to {player.Spouse.Name}");
+                return false; // Skip original method
+            }
+
+            // Allow marriage with lords, companions, and notables
+            if (otherHero.IsLord || otherHero.IsWanderer || otherHero.IsNotable)
+            {
+                Debug.Print($"[LordLife:MarryAnyone] Processing marriage between {player.Name} and {otherHero.Name}");
+                
+                // Set spouses
+                firstHero.Spouse = secondHero;
+                secondHero.Spouse = firstHero;
+
+                // Apply relationship increase
+                int relationIncrease = 20; // Default relation increase for marriage
+                ChangeRelationAction.ApplyRelationChangeBetweenHeroes(firstHero, secondHero, relationIncrease, showQuickNotification: false);
+
+                // Determine clan after marriage - player's clan takes priority
+                Clan clanAfterMarriage = player.Clan;
+                
+                // Ensure the correct hero order (the one changing clans should be secondHero)
+                if (clanAfterMarriage != firstHero.Clan)
+                {
+                    Hero temp = firstHero;
+                    firstHero = secondHero;
+                    secondHero = temp;
+                }
+
+                // Dispatch marriage event
+                CampaignEventDispatcher.Instance.OnBeforeHeroesMarried(firstHero, secondHero, showNotification);
+
+                // Handle clan changes
+                if (firstHero.Clan != clanAfterMarriage)
+                {
+                    HandleClanChangeForMarriage(firstHero, clanAfterMarriage);
+                }
+
+                if (secondHero.Clan != clanAfterMarriage)
+                {
+                    HandleClanChangeForMarriage(secondHero, clanAfterMarriage);
+                }
+
+                // End all courtships using reflection to avoid API compatibility issues
+                TryEndAllCourtships(firstHero);
+                TryEndAllCourtships(secondHero);
+                
+                // Set marriage romance state
+                ChangeRomanticStateAction.Apply(firstHero, secondHero, Romance.RomanceLevelEnum.Marriage);
+
+                Debug.Print($"[LordLife:MarryAnyone] Marriage completed between {firstHero.Name} and {secondHero.Name}");
+                
+                return false; // Skip original method
+            }
+
+            // For other character types, let vanilla handle it
+            return true; // Run original method
+        }
+
+        /// <summary>
+        /// Tries to call Romance.EndAllCourtships using reflection to avoid API compatibility issues.
+        /// </summary>
+        private static void TryEndAllCourtships(Hero hero)
+        {
+            try
+            {
+                // Use reflection to call Romance.EndAllCourtships if it exists
+                var romanceType = typeof(Romance);
+                var method = romanceType.GetMethod("EndAllCourtships", BindingFlags.Public | BindingFlags.Static);
+                if (method != null)
+                {
+                    method.Invoke(null, new object[] { hero });
+                    Debug.Print($"[LordLife:MarryAnyone] Ended all courtships for {hero.Name}");
+                }
+                else
+                {
+                    Debug.Print($"[LordLife:MarryAnyone] Romance.EndAllCourtships method not found, skipping");
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.Print($"[LordLife:MarryAnyone] Error calling EndAllCourtships: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Handles clan change when a hero marries into a different clan.
+        /// Adapted from vanilla HandleClanChangeAfterMarriageForHero but with special handling for companions and notables.
+        /// </summary>
+        private static void HandleClanChangeForMarriage(Hero hero, Clan newClan)
+        {
+            if (hero == null || newClan == null || hero.Clan == newClan)
+            {
+                return;
+            }
+
+            Clan oldClan = hero.Clan;
+
+            Debug.Print($"[LordLife:MarryAnyone] Changing {hero.Name}'s clan from {(oldClan != null ? oldClan.Name.ToString() : "None")} to {newClan.Name}");
+
+            // If hero is a governor, remove them
+            if (hero.GovernorOf != null)
+            {
+                ChangeGovernorAction.RemoveGovernorOf(hero);
+            }
+
+            // Handle party membership
+            if (hero.PartyBelongedTo != null)
+            {
+                // Handle army membership if applicable
+                if (oldClan != null && oldClan.Kingdom != newClan.Kingdom)
+                {
+                    if (hero.PartyBelongedTo.Army != null)
+                    {
+                        if (hero.PartyBelongedTo.Army.LeaderParty == hero.PartyBelongedTo)
+                        {
+                            DisbandArmyAction.ApplyByUnknownReason(hero.PartyBelongedTo.Army);
+                        }
+                        else
+                        {
+                            hero.PartyBelongedTo.Army = null;
+                        }
+                    }
+
+                    // Finish hostile actions using reflection to avoid API compatibility issues
+                    IFaction targetFaction = newClan.Kingdom ?? (IFaction)newClan;
+                    TryFinishHostileActions(hero, targetFaction);
+                }
+
+                MobileParty partyBelongedTo = hero.PartyBelongedTo;
+                bool isPartyLeader = partyBelongedTo.LeaderHero == hero;
+                
+                // Remove from party roster
+                partyBelongedTo.MemberRoster.RemoveTroop(hero.CharacterObject);
+                
+                // Make hero fugitive if they were a party leader
+                if (isPartyLeader)
+                {
+                    MakeHeroFugitiveAction.Apply(hero);
+                    if (partyBelongedTo.IsLordParty)
+                    {
+                        DisbandPartyAction.StartDisband(partyBelongedTo);
+                    }
+                }
+            }
+
+            // Change the clan
+            hero.Clan = newClan;
+
+            // Update home settlements for both clans
+            if (oldClan != null)
+            {
+                foreach (Hero h in oldClan.Heroes)
+                {
+                    h.UpdateHomeSettlement();
+                }
+            }
+
+            foreach (Hero h in newClan.Heroes)
+            {
+                h.UpdateHomeSettlement();
+            }
+
+            Debug.Print($"[LordLife:MarryAnyone] Clan change completed for {hero.Name}");
+        }
+
+        /// <summary>
+        /// Tries to call FactionHelper.FinishAllRelatedHostileActionsOfNobleToFaction using reflection.
+        /// </summary>
+        private static void TryFinishHostileActions(Hero hero, IFaction faction)
+        {
+            try
+            {
+                // Try to find FactionHelper type in CampaignSystem assembly
+                var campaignAssembly = typeof(Campaign).Assembly;
+                var factionHelperType = campaignAssembly.GetType("TaleWorlds.CampaignSystem.FactionHelper");
+                
+                if (factionHelperType != null)
+                {
+                    var method = factionHelperType.GetMethod(
+                        "FinishAllRelatedHostileActionsOfNobleToFaction",
+                        BindingFlags.Public | BindingFlags.Static
+                    );
+                    
+                    if (method != null)
+                    {
+                        method.Invoke(null, new object[] { hero, faction });
+                        Debug.Print($"[LordLife:MarryAnyone] Finished hostile actions for {hero.Name}");
+                    }
+                    else
+                    {
+                        Debug.Print($"[LordLife:MarryAnyone] FactionHelper method not found, skipping hostile action cleanup");
+                    }
+                }
+                else
+                {
+                    Debug.Print($"[LordLife:MarryAnyone] FactionHelper type not found, skipping hostile action cleanup");
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.Print($"[LordLife:MarryAnyone] Error calling FactionHelper: {ex.Message}");
             }
         }
     }
