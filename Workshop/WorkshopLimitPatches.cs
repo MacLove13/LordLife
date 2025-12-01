@@ -12,6 +12,21 @@ namespace Bannerlord.LordLife.Workshop
     public static class WorkshopLimitPatches
     {
         /// <summary>
+        /// Logs patch errors with consistent formatting.
+        /// </summary>
+        private static void LogPatchError(string operation, System.Exception ex)
+        {
+            string errorType = ex switch
+            {
+                System.Reflection.ReflectionTypeLoadException => "Reflection error",
+                System.Reflection.TargetInvocationException => "Target invocation error",
+                System.ArgumentException => "Argument error",
+                _ => "Error"
+            };
+            Debug.Print($"[LordLife:Workshop] {errorType} patching {operation}: {ex.Message}");
+        }
+
+        /// <summary>
         /// Attempts to patch the workshop count limit.
         /// This may vary depending on the Bannerlord version.
         /// </summary>
@@ -41,50 +56,12 @@ namespace Bannerlord.LordLife.Workshop
                     Debug.Print("[LordLife:Workshop] MaximumWorkshopsPlayerCanHave property not found in Campaign class");
                 }
             }
-            catch (System.Reflection.ReflectionTypeLoadException ex)
+            catch (System.Exception ex) when (ex is System.Reflection.ReflectionTypeLoadException || 
+                                              ex is System.Reflection.TargetInvocationException || 
+                                              ex is System.ArgumentException)
             {
-                Debug.Print($"[LordLife:Workshop] Reflection error patching MaximumWorkshopsPlayerCanHave: {ex.Message}");
+                LogPatchError("MaximumWorkshopsPlayerCanHave", ex);
             }
-            catch (System.Reflection.TargetInvocationException ex)
-            {
-                Debug.Print($"[LordLife:Workshop] Target invocation error patching MaximumWorkshopsPlayerCanHave: {ex.Message}");
-            }
-            catch (System.ArgumentException ex)
-            {
-                Debug.Print($"[LordLife:Workshop] Argument error patching MaximumWorkshopsPlayerCanHave: {ex.Message}");
-            }
-
-            // Secondary patch target: GetMaxWorkshopCountForClanTier method
-            // Note: This is NOT patched by default as it could affect AI clans with the same tier
-            // Only uncomment if MaximumWorkshopsPlayerCanHave is not available and you need a fallback
-            // if (!patchApplied)
-            // {
-            //     try
-            //     {
-            //         var campaignType = typeof(Campaign);
-            //         var getMaxWorkshopMethod = AccessTools.Method(campaignType, "GetMaxWorkshopCountForClanTier");
-            //         
-            //         if (getMaxWorkshopMethod != null)
-            //         {
-            //             var postfix = new HarmonyMethod(typeof(WorkshopLimitPatches), nameof(GetMaxWorkshopCountPostfix));
-            //             harmony.Patch(getMaxWorkshopMethod, postfix: postfix);
-            //             Debug.Print("[LordLife:Workshop] Successfully patched GetMaxWorkshopCountForClanTier");
-            //             patchApplied = true;
-            //         }
-            //     }
-            //     catch (System.Reflection.ReflectionTypeLoadException ex)
-            //     {
-            //         Debug.Print($"[LordLife:Workshop] Reflection error patching GetMaxWorkshopCountForClanTier: {ex.Message}");
-            //     }
-            //     catch (System.Reflection.TargetInvocationException ex)
-            //     {
-            //         Debug.Print($"[LordLife:Workshop] Target invocation error patching GetMaxWorkshopCountForClanTier: {ex.Message}");
-            //     }
-            //     catch (System.ArgumentException ex)
-            //     {
-            //         Debug.Print($"[LordLife:Workshop] Argument error patching GetMaxWorkshopCountForClanTier: {ex.Message}");
-            //     }
-            // }
 
             // Secondary patch target: WorkshopsCountLimit property on Clan
             if (!patchApplied)
@@ -106,17 +83,11 @@ namespace Bannerlord.LordLife.Workshop
                         }
                     }
                 }
-                catch (System.Reflection.ReflectionTypeLoadException ex)
+                catch (System.Exception ex) when (ex is System.Reflection.ReflectionTypeLoadException || 
+                                                  ex is System.Reflection.TargetInvocationException || 
+                                                  ex is System.ArgumentException)
                 {
-                    Debug.Print($"[LordLife:Workshop] Reflection error patching WorkshopsCountLimit: {ex.Message}");
-                }
-                catch (System.Reflection.TargetInvocationException ex)
-                {
-                    Debug.Print($"[LordLife:Workshop] Target invocation error patching WorkshopsCountLimit: {ex.Message}");
-                }
-                catch (System.ArgumentException ex)
-                {
-                    Debug.Print($"[LordLife:Workshop] Argument error patching WorkshopsCountLimit: {ex.Message}");
+                    LogPatchError("WorkshopsCountLimit", ex);
                 }
             }
 
@@ -150,19 +121,6 @@ namespace Bannerlord.LordLife.Workshop
             {
                 Debug.Print($"[LordLife:Workshop] Null reference in MaximumWorkshopsPlayerCanHavePostfix: {ex.Message}");
             }
-        }
-
-        /// <summary>
-        /// Postfix patch for GetMaxWorkshopCountForClanTier method.
-        /// WARNING: This patch is disabled by default because it could incorrectly apply extra licenses
-        /// to AI clans that have the same tier as the player's clan.
-        /// Note: This method is static and receives only tier, so we can only check against MainHero's clan tier,
-        /// which is not sufficient to identify if the method is being called for the player's clan specifically.
-        /// </summary>
-        private static void GetMaxWorkshopCountPostfix(int clanTier, ref int __result)
-        {
-            // This method is intentionally left disabled to avoid incorrectly affecting AI clans.
-            // If you need to enable it, uncomment the code in PatchWorkshopLimit() method above.
         }
 
         /// <summary>
