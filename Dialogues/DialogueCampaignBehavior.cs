@@ -300,7 +300,7 @@ namespace Bannerlord.LordLife.Dialogues
             campaignGameStarter.AddPlayerLine(
                 "lordlife_back",
                 "lordlife_dialogue_submenu",
-                "hero_main_options",
+                "close_window",
                 "{=lordlife_back}Voltar.",
                 null,
                 null,
