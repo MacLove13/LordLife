@@ -9,6 +9,6 @@ namespace Bannerlord.LordLife.DebugTools
         /// Enable or disable debug mode
         /// Set to true to enable debug features (e.g., K key to add 10000 gold)
         /// </summary>
-        public static bool IsDebugEnabled { get; set; } = false;
+        public static bool IsDebugEnabled { get; set; } = true;
     }
 }

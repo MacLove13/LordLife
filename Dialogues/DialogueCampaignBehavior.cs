@@ -268,6 +268,12 @@ namespace Bannerlord.LordLife.Dialogues
         /// </summary>
         private void RegisterMainConversationEntry(CampaignGameStarter campaignGameStarter)
         {
+            Hero conversationHero = Hero.OneToOneConversationHero;
+            if (conversationHero != null)
+            {
+                MBTextManager.SetTextVariable("NPC_NAME", conversationHero.Name);
+            }
+
             // Main conversation option
             campaignGameStarter.AddPlayerLine(
                 "lordlife_main_conversation",
@@ -300,12 +306,11 @@ namespace Bannerlord.LordLife.Dialogues
             campaignGameStarter.AddPlayerLine(
                 "lordlife_back",
                 "lordlife_dialogue_submenu",
-                "close_window",
-                "{=lordlife_back}Voltar.",
+                "hero_main_options",
+                "{=hero_main_options}Voltar.",
                 null,
                 null,
-                0, // Low priority to appear at the bottom
-                null,
+                0,
                 null);
         }
 

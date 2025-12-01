@@ -180,7 +180,7 @@ namespace Bannerlord.LordLife
                     GameMenu.SwitchToMenu("town_igreja_menu");
                 },
                 false,
-                5
+                -3
             );
 
             // Create the Igreja menu with SettlementWithCharacters overlay to show the priest
