@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Actions;
@@ -26,15 +27,12 @@ namespace Bannerlord.LordLife.Workshop
 
         public override void SyncData(IDataStore dataStore)
         {
-            // Sync workshop license data
-            var extraLicensesData = WorkshopLicenseManager.Instance.GetDataForSaving();
-            dataStore.SyncData("workshopExtraLicenses", ref extraLicensesData);
+            // Sync workshop license data directly from the manager's internal field
+            // This must be a direct field reference, not a local variable, to avoid TargetInvocationException
+            dataStore.SyncData("workshopExtraLicenses", ref WorkshopLicenseManager.Instance._extraLicenses);
             
-            if (dataStore.IsLoading)
-            {
-                WorkshopLicenseManager.ResetInstance();
-                WorkshopLicenseManager.Instance.LoadData(extraLicensesData);
-            }
+            // Ensure the dictionary is initialized after loading
+            WorkshopLicenseManager.Instance._extraLicenses ??= new Dictionary<string, int>();
         }
 
         private void OnSessionLaunched(CampaignGameStarter campaignGameStarter)

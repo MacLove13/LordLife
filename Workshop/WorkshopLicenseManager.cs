@@ -20,8 +20,9 @@ namespace Bannerlord.LordLife.Workshop
         /// <summary>
         /// Dictionary storing the number of extra workshop licenses per clan.
         /// Key: Clan StringId, Value: Number of extra licenses
+        /// Internal to allow direct access from WorkshopLicenseBehavior for save/load operations.
         /// </summary>
-        private Dictionary<string, int> _extraLicenses = new Dictionary<string, int>();
+        internal Dictionary<string, int> _extraLicenses = new Dictionary<string, int>();
 
         private WorkshopLicenseManager()
         {
