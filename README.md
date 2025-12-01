@@ -92,7 +92,12 @@ O mod depende dos seguintes módulos (carregados antes do LordLife):
      .\Development\copy-dlls.ps1 -GameFolder "C:\XboxGames\Mount & Blade II Bannerlord" -BinariesFolder "Gaming.Desktop.x64_Shipping_Client"
      ```
 
-   > 💡 **Dica**: Se você não sabe onde o jogo está instalado, procure por "Mount & Blade II Bannerlord" no explorador de arquivos ou verifique nas configurações da sua plataforma de jogos (Steam, GOG, etc).
+   > 💡 **Dica**: Para encontrar onde o jogo está instalado:
+   > - **Steam**: Clique com botão direito no jogo > Gerenciar > Procurar arquivos locais
+   > - **GOG**: Configurações > Gerenciar Instalação > Mostrar pasta
+   > - **Epic Games**: Configurações > Mount & Blade II Bannerlord > Ícone de pasta
+   > - **Xbox Game Pass**: Configurações do Windows > Aplicativos > Procurar por "Mount & Blade"
+   > - Ou procure por "Mount & Blade II Bannerlord" no explorador de arquivos
    
    > ⚠️ **Erro ao executar o script?** Se você receber um erro sobre políticas de execução, execute o PowerShell como **Administrador** e rode:
    > ```powershell
