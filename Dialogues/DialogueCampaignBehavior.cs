@@ -378,11 +378,11 @@ namespace Bannerlord.LordLife.Dialogues
                 100,
                 null);
 
-            // Continue/back option (now returns to submenu instead of main menu)
+            // Continue/back option (returns to submenu NPC prompt to restart dialogue flow)
             campaignGameStarter.AddPlayerLine(
                 continueId,
                 continueId,
-                "lordlife_dialogue_submenu",
+                "lordlife_dialogue_submenu_npc",
                 "{=lordlife_continue}Entendo...",
                 null,
                 null,
