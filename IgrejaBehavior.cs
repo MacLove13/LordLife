@@ -126,7 +126,7 @@ namespace Bannerlord.LordLife
                 // Verify the priest is properly associated with the settlement
                 if (priest.CurrentSettlement != settlement)
                 {
-                    Debug.Print($"[LordLife] Warning: Padre {priest.Name} not automatically associated with settlement. CurrentSettlement: {(priest.CurrentSettlement != null ? priest.CurrentSettlement.Name.ToString() : "null")}");
+                    Debug.Print($"[LordLife] Aviso: Padre {priest.Name} não foi automaticamente associado à settlement. CurrentSettlement: {priest.CurrentSettlement?.Name?.ToString() ?? "null"}");
                 }
                 else
                 {
