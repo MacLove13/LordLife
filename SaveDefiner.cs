@@ -24,14 +24,25 @@ namespace Bannerlord.LordLife
         protected override void DefineContainerDefinitions()
         {
             // Register container types used by the mod
-            ConstructContainerDefinition(typeof(System.Collections.Generic.Dictionary<string, string>));
-            ConstructContainerDefinition(typeof(System.Collections.Generic.Dictionary<string, int>));
-            ConstructContainerDefinition(typeof(System.Collections.Generic.Dictionary<string, DialogueCooldownEntry>));
-            ConstructContainerDefinition(typeof(System.Collections.Generic.Dictionary<string, System.Collections.Generic.Dictionary<string, DialogueCooldownEntry>>));
-            ConstructContainerDefinition(typeof(System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<string>>));
-            ConstructContainerDefinition(typeof(System.Collections.Generic.Dictionary<string, System.Collections.Generic.HashSet<string>>));
+            // Note: Simple types must be defined before they are used in nested container types
+            
+            // Define simple containers first
             ConstructContainerDefinition(typeof(System.Collections.Generic.List<string>));
             ConstructContainerDefinition(typeof(System.Collections.Generic.HashSet<string>));
+            
+            // Define dictionaries with primitive value types
+            ConstructContainerDefinition(typeof(System.Collections.Generic.Dictionary<string, string>));
+            ConstructContainerDefinition(typeof(System.Collections.Generic.Dictionary<string, int>));
+            
+            // Define dictionaries with custom class value types
+            ConstructContainerDefinition(typeof(System.Collections.Generic.Dictionary<string, DialogueCooldownEntry>));
+            
+            // Define dictionaries with collection value types (must come after the collection types are defined)
+            ConstructContainerDefinition(typeof(System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<string>>));
+            ConstructContainerDefinition(typeof(System.Collections.Generic.Dictionary<string, System.Collections.Generic.HashSet<string>>));
+            
+            // Define nested dictionaries (must come last)
+            ConstructContainerDefinition(typeof(System.Collections.Generic.Dictionary<string, System.Collections.Generic.Dictionary<string, DialogueCooldownEntry>>));
         }
     }
 }
