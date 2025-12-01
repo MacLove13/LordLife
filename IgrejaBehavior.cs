@@ -121,7 +121,7 @@ namespace Bannerlord.LordLife
                     GameMenu.SwitchToMenu("town_igreja_menu");
                 },
                 false,
-                4
+                5
             );
 
             // Create the Igreja menu
