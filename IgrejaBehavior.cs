@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Actions;
+using TaleWorlds.CampaignSystem.Conversation;
 using TaleWorlds.CampaignSystem.GameMenus;
 using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.Core;
@@ -93,8 +94,12 @@ namespace Bannerlord.LordLife
 
                 priest.ChangeState(Hero.CharacterStates.Active);
                 
-                // Instead of using EnterSettlementAction (which adds to tavern list),
-                // directly set the current settlement to avoid appearing in wanderer lists
+                // Set occupation to prevent the priest from being classified as a wanderer or notable
+                // Using Occupation.NotAssigned or Special helps prevent appearance in default lists
+                priest.SetNewOccupation(Occupation.Special);
+                
+                // Directly set the settlement without using EnterSettlementAction
+                // This prevents the priest from being added to tavern wanderer lists
                 priest.StayingInSettlement = settlement;
 
                 Debug.Print($"[LordLife] Padre criado: {priest.Name} em {settlement.Name}");
@@ -137,6 +142,7 @@ namespace Bannerlord.LordLife
             );
 
             // Create the Igreja menu
+            // Use None overlay type to prevent showing default notables list
             campaignGameStarter.AddGameMenu(
                 "town_igreja_menu",
                 "{=lordlife_igreja_desc}Você está na Igreja. O ambiente é sereno e convidativo.",
@@ -148,7 +154,7 @@ namespace Bannerlord.LordLife
                         Debug.Print($"[LordLife] Igreja: Padre presente - {priest.Name}");
                     }
                 },
-                GameMenu.MenuOverlayType.SettlementWithBoth
+                GameMenu.MenuOverlayType.None
             );
 
             // Option 1: Falar com padre
@@ -167,7 +173,8 @@ namespace Bannerlord.LordLife
                     if (priest != null)
                     {
                         Debug.Print($"[LordLife] Igreja: Falar com padre - {priest.Name}");
-                        InformationManager.DisplayMessage(new InformationMessage($"[LordLife] Debug: Falar com {priest.Name}", Colors.Yellow));
+                        // Start a conversation with the priest
+                        CampaignMapConversation.OpenConversation(new ConversationCharacterData(CharacterObject.PlayerCharacter, null, false, false, false, false, false, false), new ConversationCharacterData(priest.CharacterObject, null, false, false, false, false, false, false));
                     }
                 },
                 false,

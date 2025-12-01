@@ -363,6 +363,12 @@ namespace Bannerlord.LordLife.Dialogues
         /// </summary>
         private bool IsValidHeroType(Hero hero)
         {
+            // Exclude priests (special occupation heroes created by LordLife)
+            if (hero.Occupation == Occupation.Special)
+            {
+                return false;
+            }
+            
             return hero.IsLord || hero.IsWanderer || hero.IsNotable;
         }
 
