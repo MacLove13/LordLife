@@ -112,7 +112,9 @@ dotnet build -c Release
 
 ## Variações de Respostas
 
-Cada diálogo pode ter **1 a 3 variações de respostas** (recomendado: 3).
+Cada diálogo pode ter **1 a 3 variações de respostas**. 
+
+**Recomendação forte: sempre use 3 respostas** para manter a consistência e tornar as conversas mais dinâmicas e imprevisíveis.
 
 ### Como Funciona
 
@@ -424,9 +426,9 @@ Após adicionar novos diálogos:
 5. Confirme que o relacionamento muda como esperado
 
 ### 9. **Balanceamento**
-- Não crie diálogos que dão +10 de relacionamento!
-- Evite cooldowns muito curtos (< 2 dias)
-- Evite cooldowns muito longos (> 30 dias) para diálogos básicos
+- **Não crie diálogos que dão +10 de relacionamento!** Isso quebraria o balanceamento do jogo, permitindo progressão muito rápida e tornando o sistema de relacionamento trivial. Valores altos também são irrealistas para conversas simples.
+- Evite cooldowns muito curtos (< 2 dias) - o jogador poderia explorar isso para ganhar relacionamento muito rapidamente
+- Evite cooldowns muito longos (> 30 dias) para diálogos básicos - isso tornaria o sistema frustrante de usar
 
 ### 10. **Documentação Inline**
 Adicione comentários antes de grupos de diálogos:
