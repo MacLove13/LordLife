@@ -2,6 +2,7 @@ using System.Linq;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Actions;
 using TaleWorlds.CampaignSystem.Conversation;
+using TaleWorlds.CampaignSystem.GameComponents;
 using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.Core;
 using TaleWorlds.Library;
@@ -252,6 +253,27 @@ namespace Bannerlord.LordLife.Workshop
                         Colors.Green));
 
                 Debug.Print($"[LordLife:Workshop] {Hero.MainHero.Name} comprou licença de oficina por {WorkshopLicenseCost}. Total de licenças extras: {WorkshopLicenseManager.Instance.GetExtraLicenses(clan.StringId)}");
+            }
+        }
+
+        public class CustomWorkshopModel : DefaultWorkshopModel
+        {
+            public override int GetMaxWorkshopCountForClanTier(int tier)
+            {
+                return base.GetMaxWorkshopCountForClanTier(tier) + GetExtraLicenses();
+            }
+
+            public override int MaximumWorkshopsPlayerCanHave => base.MaximumWorkshopsPlayerCanHave + GetExtraLicenses();
+
+            private int GetExtraLicenses()
+            {
+                if (Campaign.Current?.GetCampaignBehavior<WorkshopLicenseBehavior>() is { } behavior)
+                {
+                    var clan = Hero.MainHero.Clan;
+                    return WorkshopLicenseManager.Instance.GetExtraLicenses(clan.StringId);
+                    // return behavior.GetExtraLicensesFor(Hero.MainHero);
+                }
+                return 0;
             }
         }
     }

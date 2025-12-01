@@ -67,6 +67,7 @@ namespace Bannerlord.LordLife
 
                 // Add Workshop License behavior
                 campaignGameStarter.AddBehavior(new WorkshopLicenseBehavior());
+                campaignGameStarter.AddModel(new WorkshopLicenseBehavior.CustomWorkshopModel());
                 Debug.Print("[LordLife:Workshop] WorkshopLicenseBehavior registrado.");
             }
         }
