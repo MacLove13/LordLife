@@ -138,11 +138,11 @@ namespace Bannerlord.LordLife.MarryAnyone
                         return false; // Skip original method
                     }
                     
-                    // For lords, companions (wanderers), and notables, they may not have a Clan property
+                    // For lords, wanderers (companions), and notables, they may not have a Clan property
                     // The vanilla method expects Clan to exist, which causes NullReferenceException
                     // We safely allow romance for these character types even without a clan
                     __result = false; // Don't block romance
-                    Debug.Print($"[LordLife:MarryAnyone] Romance not blocked for {conversationHero.Name} (supported character type)");
+                    Debug.Print($"[LordLife:MarryAnyone] Romance not blocked for {conversationHero.Name ?? "Unknown"} (supported character type)");
                     return false; // Skip original method to prevent NullReferenceException
                 }
 
