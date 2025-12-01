@@ -36,9 +36,9 @@ namespace Bannerlord.LordLife
         {
             base.OnGameStart(game, gameStarterObject);
 
-            if (game.GameType is Campaign)
+            // Works with both Campaign (Story Mode) and Sandbox modes
+            if (gameStarterObject is CampaignGameStarter campaignStarter)
             {
-                CampaignGameStarter campaignStarter = (CampaignGameStarter)gameStarterObject;
                 campaignStarter.AddBehavior(new IgrejaBehavior());
                 Debug.Print("[LordLife] IgrejaBehavior registrado.");
             }
