@@ -108,12 +108,23 @@ namespace Bannerlord.LordLife.Workshop
             campaignGameStarter.AddPlayerLine(
                 "lordlife_workshop_license_cancel",
                 "lordlife_workshop_license_confirm",
-                "hero_main_options",
+                "lordlife_workshop_license_cancel_response",
                 "{=lordlife_workshop_cancel}Desistir da compra",
                 null,
                 null,
                 99,
                 null,
+                null);
+
+            // Notable response when player cancels
+            campaignGameStarter.AddDialogLine(
+                "lordlife_workshop_license_cancel_response",
+                "lordlife_workshop_license_cancel_response",
+                "hero_main_options",
+                "{=lordlife_workshop_cancel_response}Entendo. Se mudar de ideia, estarei aqui.",
+                null,
+                null,
+                100,
                 null);
 
             // Purchase completed confirmation
