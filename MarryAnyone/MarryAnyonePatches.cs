@@ -18,18 +18,18 @@ namespace Bannerlord.LordLife.MarryAnyone
         /// </summary>
         [HarmonyPatch(typeof(Romance), nameof(Romance.GetRomanticLevel))]
         [HarmonyPostfix]
-        public static void GetRomanticLevelPostfix(Hero hero1, Hero hero2, ref Romance.RomanceLevelEnum __result)
+        public static void GetRomanticLevelPostfix(Hero person1, Hero person2, ref Romance.RomanceLevelEnum __result)
         {
-            if (hero1 == null || hero2 == null)
+            if (person1 == null || person2 == null)
             {
                 return;
             }
 
-            bool involvesPlayer = hero1 == Hero.MainHero || hero2 == Hero.MainHero;
+            bool involvesPlayer = person1 == Hero.MainHero || person2 == Hero.MainHero;
 
             if (involvesPlayer)
             {
-                Debug.Print($"[LordLife:MarryAnyone] Romance level between {hero1.Name} and {hero2.Name}: {__result}");
+                Debug.Print($"[LordLife:MarryAnyone] Romance level between {person1.Name} and {person2.Name}: {__result}");
             }
         }
 
