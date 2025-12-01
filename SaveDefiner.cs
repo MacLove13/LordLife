@@ -17,12 +17,16 @@ namespace Bannerlord.LordLife
 
         protected override void DefineClassTypes()
         {
+            base.DefineClassTypes();
+            
             // Register DialogueCooldownEntry for serialization
             AddClassDefinition(typeof(DialogueCooldownEntry), 1);
         }
 
         protected override void DefineContainerDefinitions()
         {
+            base.DefineContainerDefinitions();
+            
             // Register container types used by the mod
             // Note: Simple types must be defined before they are used in nested container types
             
