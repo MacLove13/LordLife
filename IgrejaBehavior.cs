@@ -94,12 +94,16 @@ namespace Bannerlord.LordLife
                 Debug.Print($"[LordLife] Igreja: Padre presente - {priest.Name}");
                 
                 // Temporarily add priest to settlement for the overlay to show
+                // Only add if not already present (which should be the normal case)
                 if (priest.CurrentSettlement != settlement)
                 {
                     // Use EnterSettlementAction to make the priest appear in the settlement overlay
                     EnterSettlementAction.ApplyForCharacterOnly(priest, settlement);
+                    // Track that we added the priest so we can remove them when leaving
                     _priestAddedToSettlement = true;
                 }
+                // If priest is already in settlement, we don't touch them or set the flag
+                // This ensures we only clean up priests we explicitly added
             }
         }
 
@@ -266,7 +270,9 @@ namespace Bannerlord.LordLife
                 args =>
                 {
                     // Remove priest from settlement when leaving church to prevent appearing in tavern
-                    // Only remove if we added them in OnIgrejaMenuInit
+                    // Only remove if we explicitly added them in OnIgrejaMenuInit (tracked by flag)
+                    // This ensures we don't accidentally remove priests that were in the settlement
+                    // for other reasons (which shouldn't happen in normal gameplay)
                     if (_priestAddedToSettlement)
                     {
                         Settlement? settlement = Settlement.CurrentSettlement;
