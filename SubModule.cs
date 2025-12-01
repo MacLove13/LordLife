@@ -47,6 +47,14 @@ namespace Bannerlord.LordLife
                 // Add Dialogues campaign behavior
                 campaignGameStarter.AddBehavior(new DialogueCampaignBehavior());
                 Debug.Print("[LordLife:Dialogues] CampaignBehavior adicionado.");
+
+                // Add Igreja campaign behavior
+                campaignGameStarter.AddBehavior(new IgrejaBehavior());
+                Debug.Print("[LordLife] IgrejaBehavior registrado.");
+
+                // Add Low Loyalty Voting behavior
+                campaignGameStarter.AddBehavior(new LowLoyaltyVotingBehavior());
+                Debug.Print("[LordLife:LowLoyaltyVoting] CampaignBehavior adicionado.");
             }
 
             if (gameStarterObject is CampaignGameStarter campaignStarter)
