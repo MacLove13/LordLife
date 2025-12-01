@@ -56,12 +56,6 @@ namespace Bannerlord.LordLife
                 campaignGameStarter.AddBehavior(new LowLoyaltyVotingBehavior());
                 Debug.Print("[LordLife:LowLoyaltyVoting] CampaignBehavior adicionado.");
             }
-
-            if (gameStarterObject is CampaignGameStarter campaignStarter)
-            {
-                campaignStarter.AddBehavior(new IgrejaBehavior());
-                Debug.Print("[LordLife] IgrejaBehavior registrado.");
-            }
         }
 
         protected override void OnBeforeInitialModuleScreenSetAsRoot()
