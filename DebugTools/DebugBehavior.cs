@@ -10,7 +10,7 @@ namespace Bannerlord.LordLife.DebugTools
     /// <summary>
     /// Debug behavior that provides development shortcuts
     /// - Pressing K when inventory is open: adds 100,000 gold to the player
-    /// - Pressing K during battle: kills all enemy troops
+    /// - Pressing M during battle: kills all enemy troops
     /// </summary>
     public class DebugBehavior : CampaignBehaviorBase
     {
@@ -44,19 +44,29 @@ namespace Bannerlord.LordLife.DebugTools
             {
                 HandleKKeyPress();
             }
+
+            // Check if M key is released (to prevent multiple rapid triggers)
+            if (Input.IsKeyReleased(InputKey.M))
+            {
+                HandleMKeyPress();
+            }
         }
 
         private void HandleKKeyPress()
+        {
+            // Check if inventory screen is open
+            if (IsInventoryScreenOpen())
+            {
+                AddGoldToPlayer();
+            }
+        }
+
+        private void HandleMKeyPress()
         {
             // Check if we're in a mission (battle)
             if (Mission.Current != null && Mission.Current.Mode != MissionMode.Conversation)
             {
                 KillAllEnemyTroops();
-            }
-            // Check if inventory screen is open
-            else if (IsInventoryScreenOpen())
-            {
-                AddGoldToPlayer();
             }
         }
 
