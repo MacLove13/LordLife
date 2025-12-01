@@ -3,11 +3,8 @@
     "Bannerlord": {
       "commandName": "Executable",
       "executablePath": "$(GameFolder)\\bin\\$(GameBinariesFolder)\\Bannerlord.exe",
-      "commandLineArgs": "/singleplayer _MODULES_*Bannerlord.Harmony*Native*SandBoxCore*CustomBattle*Sandbox*StoryMode*WarSails*$(ModuleId)*_MODULES_",
-      "workingDirectory": "$(GameFolder)\\bin\\$(GameBinariesFolder)",
-      "environmentVariables": {
-        "GameFolder": "batata"
-      }
+      "commandLineArgs": "/singleplayer _MODULES_*Bannerlord.Harmony*Native*SandBoxCore*CustomBattle*Sandbox*StoryMode*NavalDLC*$(ModuleId)*_MODULES_",
+      "workingDirectory": "$(GameFolder)\\bin\\$(GameBinariesFolder)"
     },
     "BLSE Bannerlord": {
       "commandName": "Executable",
