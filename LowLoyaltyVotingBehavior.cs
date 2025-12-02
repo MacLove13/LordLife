@@ -51,6 +51,7 @@ namespace Bannerlord.LordLife
 
         /// <summary>
         /// Called daily for each settlement to check loyalty levels.
+        /// Only active when the Feudos Leais policy is enabled in the kingdom.
         /// </summary>
         private void OnDailyTickSettlement(Settlement settlement)
         {
@@ -62,6 +63,12 @@ namespace Bannerlord.LordLife
 
             // Must have an owner clan and be part of a kingdom
             if (settlement.OwnerClan == null || settlement.OwnerClan.Kingdom == null)
+            {
+                return;
+            }
+
+            // Only process if the Feudos Leais policy is active in the kingdom
+            if (!PolicyManager.IsFeudosLeaisPolicyActive(settlement.OwnerClan.Kingdom))
             {
                 return;
             }
@@ -193,19 +200,29 @@ namespace Bannerlord.LordLife
 
         /// <summary>
         /// Gets the list of potential claimants for a settlement.
-        /// Excludes the current owner.
+        /// Excludes the current owner unless there are no other valid candidates.
         /// </summary>
         private List<Clan> GetPotentialClaimants(Kingdom kingdom, Settlement settlement)
         {
             var claimants = new List<Clan>();
+            var currentOwner = settlement.OwnerClan;
 
+            // First, try to find claimants excluding the current owner
             foreach (Clan clan in kingdom.Clans)
             {
                 // Exclude current owner and minor factions
-                if (clan != settlement.OwnerClan && !clan.IsMinorFaction && clan.Leader != null && clan.Leader.IsAlive)
+                if (clan != currentOwner && !clan.IsMinorFaction && clan.Leader != null && clan.Leader.IsAlive)
                 {
                     claimants.Add(clan);
                 }
+            }
+
+            // If no other claimants exist, include the current owner as a fallback
+            if (claimants.Count == 0 && currentOwner != null && !currentOwner.IsMinorFaction && 
+                currentOwner.Leader != null && currentOwner.Leader.IsAlive)
+            {
+                claimants.Add(currentOwner);
+                Debug.Print($"[LordLife:LowLoyaltyVoting] No alternative claimants found for {settlement.Name}. Including current owner as fallback.");
             }
 
             return claimants;
