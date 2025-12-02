@@ -16,6 +16,10 @@ namespace Bannerlord.LordLife.MarryAnyone
         // This is persisted across save/load via CampaignBehaviorBase.SyncData() in MarryAnyoneCampaignBehavior
         private static HashSet<Hero> _courtshipQuestionsCompleted = new HashSet<Hero>();
 
+        // Track ex-spouses for the player
+        // Since the Hero class doesn't have an ExSpouses property, we track it ourselves
+        private static List<Hero> _playerExSpouses = new List<Hero>();
+
         /// <summary>
         /// Gets the set of heroes who have completed courtship questions.
         /// Used for save/load serialization.
@@ -178,6 +182,53 @@ namespace Bannerlord.LordLife.MarryAnyone
         public static void ResetCourtshipData()
         {
             _courtshipQuestionsCompleted.Clear();
+            _playerExSpouses.Clear();
+        }
+
+        /// <summary>
+        /// Gets the list of ex-spouses for save/load serialization.
+        /// </summary>
+        public static IEnumerable<Hero> GetPlayerExSpouses()
+        {
+            return _playerExSpouses.AsEnumerable();
+        }
+
+        /// <summary>
+        /// Sets the ex-spouses list for save/load deserialization.
+        /// </summary>
+        public static void SetPlayerExSpouses(IEnumerable<Hero> exSpouses)
+        {
+            _playerExSpouses.Clear();
+            if (exSpouses != null)
+            {
+                foreach (var hero in exSpouses)
+                {
+                    if (hero != null)
+                    {
+                        _playerExSpouses.Add(hero);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Adds a hero to the player's ex-spouses list.
+        /// </summary>
+        public static void AddExSpouse(Hero hero)
+        {
+            if (hero != null && !_playerExSpouses.Contains(hero))
+            {
+                _playerExSpouses.Add(hero);
+                Debug.Print($"[LordLife:MarryAnyone] Added {hero.Name?.ToString() ?? "Unknown"} to ex-spouses list");
+            }
+        }
+
+        /// <summary>
+        /// Checks if a hero is an ex-spouse of the player.
+        /// </summary>
+        public static bool IsExSpouse(Hero hero)
+        {
+            return hero != null && _playerExSpouses.Contains(hero);
         }
 
         /// <summary>
@@ -193,6 +244,39 @@ namespace Bannerlord.LordLife.MarryAnyone
 
             // Use the game's marriage action
             MarriageAction.Apply(Hero.MainHero, hero);
+        }
+
+        /// <summary>
+        /// Executes divorce between the player and their current spouse.
+        /// Clears the Spouse property and adds the ex-spouse to tracking list.
+        /// </summary>
+        public static void DivorcePlayer()
+        {
+            Hero player = Hero.MainHero;
+            if (player == null || player.Spouse == null)
+            {
+                Debug.Print("[LordLife:MarryAnyone] Cannot divorce - player has no spouse");
+                return;
+            }
+
+            Hero spouse = player.Spouse;
+            
+            // Add to ex-spouses list
+            AddExSpouse(spouse);
+            
+            // Clear spouse relationship
+            player.Spouse = null;
+            spouse.Spouse = null;
+            
+            // Set romance level to end marriage
+            ChangeRomanticStateAction.Apply(player, spouse, Romance.RomanceLevelEnum.Ended);
+            
+            // Decrease relationship due to divorce
+            int currentRelation = CharacterRelationManager.GetHeroRelation(player, spouse);
+            int relationPenalty = -30; // Significant penalty for divorce
+            CharacterRelationManager.SetHeroRelation(player, spouse, currentRelation + relationPenalty);
+            
+            Debug.Print($"[LordLife:MarryAnyone] Divorce completed between {player.Name} and {spouse.Name}");
         }
 
         /// <summary>
