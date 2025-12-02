@@ -86,8 +86,10 @@ namespace Bannerlord.LordLife.MarryAnyone
 
         /// <summary>
         /// Patches RomanceCampaignBehavior to allow romance initiation with more characters.
+        /// DISABLED: This patch was causing vanilla courtship dialogues to appear inappropriately.
+        /// The mod uses its own custom dialogue system in MarryAnyoneCampaignBehavior instead.
         /// </summary>
-        [HarmonyPatch(typeof(RomanceCampaignBehavior), "conversation_player_can_open_courtship_on_condition")]
+        /*[HarmonyPatch(typeof(RomanceCampaignBehavior), "conversation_player_can_open_courtship_on_condition")]
         [HarmonyPostfix]
         public static void CanOpenCourtshipPostfix(ref bool __result)
         {
@@ -108,7 +110,7 @@ namespace Bannerlord.LordLife.MarryAnyone
                     Debug.Print($"[LordLife:MarryAnyone] Courtship dialogue enabled for {conversationHero.Name}");
                 }
             }
-        }
+        }*/
 
         /// <summary>
         /// Patches RomanceCampaignBehavior.conversation_romance_blocked_on_condition to prevent NullReferenceException.
