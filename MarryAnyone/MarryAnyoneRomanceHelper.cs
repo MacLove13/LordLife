@@ -12,6 +12,9 @@ namespace Bannerlord.LordLife.MarryAnyone
     /// </summary>
     public static class MarryAnyoneRomanceHelper
     {
+        // Relationship penalty applied when divorcing
+        private const int DIVORCE_RELATIONSHIP_PENALTY = -30;
+
         // Track which heroes have completed courtship questions
         // This is persisted across save/load via CampaignBehaviorBase.SyncData() in MarryAnyoneCampaignBehavior
         private static HashSet<Hero> _courtshipQuestionsCompleted = new HashSet<Hero>();
@@ -232,6 +235,14 @@ namespace Bannerlord.LordLife.MarryAnyone
         }
 
         /// <summary>
+        /// Gets the relationship penalty applied when divorcing.
+        /// </summary>
+        public static int GetDivorceRelationshipPenalty()
+        {
+            return DIVORCE_RELATIONSHIP_PENALTY;
+        }
+
+        /// <summary>
         /// Executes the marriage between the player and the specified hero.
         /// </summary>
         /// <param name="hero">The hero to marry.</param>
@@ -248,7 +259,8 @@ namespace Bannerlord.LordLife.MarryAnyone
 
         /// <summary>
         /// Executes divorce between the player and their current spouse.
-        /// Clears the Spouse property and adds the ex-spouse to tracking list.
+        /// Uses ChangeRomanticStateAction to properly end the marriage, then clears Spouse properties
+        /// and adds the ex-spouse to tracking list. Also applies a relationship penalty.
         /// </summary>
         public static void DivorcePlayer()
         {
@@ -261,20 +273,21 @@ namespace Bannerlord.LordLife.MarryAnyone
 
             Hero spouse = player.Spouse;
             
-            // Add to ex-spouses list
+            // Add to ex-spouses list before clearing spouse reference
             AddExSpouse(spouse);
             
+            // Use game's ChangeRomanticStateAction to properly end the marriage
+            // This ensures all marriage-related game systems are notified
+            ChangeRomanticStateAction.Apply(player, spouse, Romance.RomanceLevelEnum.Ended);
+            
             // Clear spouse relationship
+            // Note: This is done after ChangeRomanticStateAction to ensure proper state transition
             player.Spouse = null;
             spouse.Spouse = null;
             
-            // Set romance level to end marriage
-            ChangeRomanticStateAction.Apply(player, spouse, Romance.RomanceLevelEnum.Ended);
-            
-            // Decrease relationship due to divorce
+            // Apply relationship penalty for divorce
             int currentRelation = CharacterRelationManager.GetHeroRelation(player, spouse);
-            int relationPenalty = -30; // Significant penalty for divorce
-            CharacterRelationManager.SetHeroRelation(player, spouse, currentRelation + relationPenalty);
+            CharacterRelationManager.SetHeroRelation(player, spouse, currentRelation + DIVORCE_RELATIONSHIP_PENALTY);
             
             Debug.Print($"[LordLife:MarryAnyone] Divorce completed between {player.Name} and {spouse.Name}");
         }

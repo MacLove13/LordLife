@@ -658,9 +658,10 @@ namespace Bannerlord.LordLife.MarryAnyone
             // Execute divorce
             MarryAnyoneRomanceHelper.DivorcePlayer();
 
+            int penalty = MarryAnyoneRomanceHelper.GetDivorceRelationshipPenalty();
             InformationManager.DisplayMessage(
                 new InformationMessage(
-                    $"Você se divorciou de {heroName}. (-30 de relacionamento)",
+                    $"Você se divorciou de {heroName}. ({penalty} de relacionamento)",
                     Colors.Red
                 )
             );
