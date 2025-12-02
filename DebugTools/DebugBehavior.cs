@@ -1,4 +1,7 @@
+using System.Linq;
 using TaleWorlds.CampaignSystem;
+using TaleWorlds.CampaignSystem.GameMenus;
+using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.Core;
 using TaleWorlds.InputSystem;
 using TaleWorlds.Library;
@@ -31,6 +34,7 @@ namespace Bannerlord.LordLife.DebugTools
         {
             // Register tick event to check for key presses during gameplay
             CampaignEvents.TickEvent.AddNonSerializedListener(this, OnTick);
+            CampaignEvents.MissionTickEvent.AddNonSerializedListener(this, OnTick);
         }
 
         private void OnTick(float dt)
@@ -40,13 +44,13 @@ namespace Bannerlord.LordLife.DebugTools
                 return;
 
             // Check if K key is released (to prevent multiple rapid triggers)
-            if (Input.IsKeyReleased(InputKey.K))
+            if (Input.IsKeyReleased(InputKey.O))
             {
                 HandleKKeyPress();
             }
 
             // Check if M key is released (to prevent multiple rapid triggers)
-            if (Input.IsKeyReleased(InputKey.M))
+            if (Input.IsKeyDown(InputKey.M))
             {
                 HandleMKeyPress();
             }
@@ -54,11 +58,7 @@ namespace Bannerlord.LordLife.DebugTools
 
         private void HandleKKeyPress()
         {
-            // Check if inventory screen is open
-            if (IsInventoryScreenOpen())
-            {
-                AddGoldToPlayer();
-            }
+            AddGoldToPlayer();
         }
 
         private void HandleMKeyPress()
@@ -126,7 +126,7 @@ namespace Bannerlord.LordLife.DebugTools
             int enemiesKilled = 0;
 
             // Iterate through all active agents in the mission
-            foreach (Agent agent in Mission.Current.Agents)
+            foreach (Agent agent in Mission.Current.Agents.ToList())
             {
                 // Skip if agent is null, already dead, or is the player
                 if (agent == null || !agent.IsActive() || agent == playerAgent)

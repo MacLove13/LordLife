@@ -21,6 +21,19 @@ namespace Bannerlord.LordLife.Dialogues
         /// </summary>
         public static List<DialogueEntry> AllDialogues { get; } = new List<DialogueEntry>
         {
+            // DEBUG
+            new DialogueEntry(
+                id: "basic_ask_debug",
+                playerText: "Vamos ser amigos? (DEBUG)",
+                responses: new List<DialogueResponse>
+                {
+                    new DialogueResponse("Amigo, você é um amigo!", 80),
+                },
+                type: DialogueType.Basic,
+                minRelationship: -100,
+                cooldownDays: 3,
+                priority: 200),
+
             // =====================================================
             // BASIC DIALOGUES (Available to everyone)
             // =====================================================
@@ -118,7 +131,8 @@ namespace Bannerlord.LordLife.Dialogues
                 {
                     new DialogueResponse("Alguns são honrados, outros... bem, você sabe como é.", 1),
                     new DialogueResponse("Cada um tem suas ambições. Cabe a nós escolher nossos aliados com sabedoria.", 1),
-                    new DialogueResponse("Há aqueles em quem confio e outros que observo com cautela.", 0)
+                    new DialogueResponse("Há aqueles em quem confio e outros que observo com cautela.", 0),
+                    new DialogueResponse("Prefiro não falar sobre os lords...", -2),
                 },
                 type: DialogueType.Relationship,
                 minRelationship: 20,
@@ -139,7 +153,7 @@ namespace Bannerlord.LordLife.Dialogues
                 },
                 type: DialogueType.Relationship,
                 minRelationship: 50,
-                cooldownDays: 10,
+                cooldownDays: 20,
                 priority: 80),
 
             new DialogueEntry(
@@ -253,7 +267,8 @@ namespace Bannerlord.LordLife.Dialogues
                 {
                     new DialogueResponse("Precisamos ser estratégicos. O inimigo não perdoará erros.", 1),
                     new DialogueResponse("A melhor defesa é um bom ataque. Devemos pressionar suas linhas.", 1),
-                    new DialogueResponse("Conhecer o terreno é essencial. Cada vantagem conta.", 2)
+                    new DialogueResponse("Conhecer o terreno é essencial. Cada vantagem conta.", 2),
+                    new DialogueResponse("Vamos agir mais e pensar menos!", -2)
                 },
                 type: DialogueType.War,
                 minRelationship: 0,

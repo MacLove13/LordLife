@@ -188,6 +188,10 @@ namespace Bannerlord.LordLife.MarryAnyone
         {
             if (hero == null || Hero.MainHero == null)
             {
+                new InformationMessage(
+                    $"Não foi possível realizar o casamento!",
+                    Colors.Red
+                );
                 return;
             }
 
