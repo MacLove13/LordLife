@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<base xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" type="Policy">
+  <Policy id="feudos_leais" 
+          name="{=feudos_leais_name}Feudos Leais" 
+          description="{=feudos_leais_desc}Um senhor deve manter a lealdade de seu feudo." 
+          primary_bonus_1="" 
+          primary_bonus_2="" 
+          secondary_bonus_1="" 
+          secondary_bonus_2="" />
+</base>
