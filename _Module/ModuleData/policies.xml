@@ -3,7 +3,7 @@
   <Policy id="feudos_leais" 
           name="{=feudos_leais_name}Feudos Leais" 
           description="{=feudos_leais_desc}Um senhor deve manter a lealdade de seu feudo." 
-          primary_bonus_1="" 
+          primary_bonus_1="{=feudos_leais_bonus1}Loyalty bonus in owned fiefs: +1" 
           primary_bonus_2="" 
           secondary_bonus_1="" 
           secondary_bonus_2="" />
