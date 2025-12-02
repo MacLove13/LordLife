@@ -206,47 +206,63 @@ namespace Bannerlord.LordLife.MarryAnyone
             {
                 Debug.Print($"[LordLife:MarryAnyone] Processing marriage between {player.Name} and {otherHero.Name}");
                 
-                // Set spouses
-                firstHero.Spouse = secondHero;
-                secondHero.Spouse = firstHero;
+                // Calculate relationship increase (try to match vanilla behavior)
+                int relationIncrease = 20; // Default value, vanilla uses Campaign.Current.Models.MarriageModel.GetEffectiveRelationIncrease
+                try
+                {
+                    if (Campaign.Current?.Models?.MarriageModel != null)
+                    {
+                        relationIncrease = Campaign.Current.Models.MarriageModel.GetEffectiveRelationIncrease(firstHero, secondHero);
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    // Use default if model method fails
+                    Debug.Print($"[LordLife:MarryAnyone] Error getting relation increase from model: {ex.Message}");
+                    Debug.Print($"[LordLife:MarryAnyone] Using default relation increase value: {relationIncrease}");
+                }
 
-                // Apply relationship increase
-                int relationIncrease = 20; // Default relation increase for marriage
+                // Apply relationship increase before setting spouses
                 ChangeRelationAction.ApplyRelationChangeBetweenHeroes(firstHero, secondHero, relationIncrease, showQuickNotification: false);
 
                 // Determine clan after marriage - player's clan takes priority
+                // This ensures companions and notables join the player's clan
                 Clan clanAfterMarriage = player.Clan;
                 
-                // Ensure the correct hero order (the one changing clans should be secondHero)
+                // Determine which hero should be "firstHero" (the one staying in their clan)
+                // and which should be "secondHero" (the one potentially changing clans)
+                // According to vanilla logic, if clanAfterMarriage != firstHero.Clan, we swap
+                Hero heroStayingInClan = firstHero;
+                Hero heroChangingClan = secondHero;
+                
                 if (clanAfterMarriage != firstHero.Clan)
                 {
-                    Hero temp = firstHero;
-                    firstHero = secondHero;
-                    secondHero = temp;
+                    heroStayingInClan = secondHero;
+                    heroChangingClan = firstHero;
                 }
 
-                // Dispatch marriage event
-                CampaignEventDispatcher.Instance.OnBeforeHeroesMarried(firstHero, secondHero, showNotification);
+                // Set spouses AFTER determining correct order
+                heroStayingInClan.Spouse = heroChangingClan;
+                heroChangingClan.Spouse = heroStayingInClan;
 
-                // Handle clan changes
-                if (firstHero.Clan != clanAfterMarriage)
-                {
-                    HandleClanChangeForMarriage(firstHero, clanAfterMarriage);
-                }
+                // Dispatch marriage event with correct hero order
+                CampaignEventDispatcher.Instance.OnBeforeHeroesMarried(heroStayingInClan, heroChangingClan, showNotification);
 
-                if (secondHero.Clan != clanAfterMarriage)
+                // Handle clan change for the hero who needs to change clans
+                // Only heroChangingClan should need to change clans since heroStayingInClan is already in the target clan
+                if (heroChangingClan.Clan != clanAfterMarriage)
                 {
-                    HandleClanChangeForMarriage(secondHero, clanAfterMarriage);
+                    HandleClanChangeForMarriage(heroChangingClan, clanAfterMarriage);
                 }
 
                 // End all courtships using reflection to avoid API compatibility issues
-                TryEndAllCourtships(firstHero);
-                TryEndAllCourtships(secondHero);
+                TryEndAllCourtships(heroStayingInClan);
+                TryEndAllCourtships(heroChangingClan);
                 
                 // Set marriage romance state
-                ChangeRomanticStateAction.Apply(firstHero, secondHero, Romance.RomanceLevelEnum.Marriage);
+                ChangeRomanticStateAction.Apply(heroStayingInClan, heroChangingClan, Romance.RomanceLevelEnum.Marriage);
 
-                Debug.Print($"[LordLife:MarryAnyone] Marriage completed between {firstHero.Name} and {secondHero.Name}");
+                Debug.Print($"[LordLife:MarryAnyone] Marriage completed between {heroStayingInClan.Name} and {heroChangingClan.Name}");
                 
                 return false; // Skip original method
             }
@@ -321,7 +337,18 @@ namespace Bannerlord.LordLife.MarryAnyone
                     }
 
                     // Finish hostile actions using reflection to avoid API compatibility issues
-                    IFaction targetFaction = newClan.Kingdom ?? (IFaction)newClan;
+                    // Use the clan's kingdom if available, otherwise use the clan itself as the faction
+                    // This is necessary because companions and notables may belong to a clan that is part of a kingdom
+                    IFaction targetFaction;
+                    if (newClan.Kingdom != null)
+                    {
+                        targetFaction = newClan.Kingdom;
+                    }
+                    else
+                    {
+                        // Clan implements IFaction, so no cast needed
+                        targetFaction = newClan;
+                    }
                     TryFinishHostileActions(hero, targetFaction);
                 }
 
