@@ -185,7 +185,18 @@ namespace Bannerlord.LordLife
                 args =>
                 {
                     args.optionLeaveType = GameMenuOption.LeaveType.Submenu;
-                    return IsInTown();
+                    if (IsInTown())
+                    {
+                        // Ensure priest exists for this settlement
+                        Settlement? settlement = Settlement.CurrentSettlement;
+                        if (settlement != null)
+                        {
+                            // Only create if priest doesn't exist yet (GetOrCreatePriestForSettlement handles this efficiently)
+                            GetOrCreatePriestForSettlement(settlement);
+                        }
+                        return true;
+                    }
+                    return false;
                 },
                 args =>
                 {
