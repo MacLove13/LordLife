@@ -27,6 +27,9 @@ namespace Bannerlord.LordLife.MarryAnyone
 
         // Save data: track heroes who completed courtship
         private List<Hero> _savedCourtshipCompletedHeroes = new List<Hero>();
+        
+        // Save data: track player's ex-spouses
+        private List<Hero> _savedPlayerExSpouses = new List<Hero>();
         public override void RegisterEvents()
         {
             CampaignEvents.OnSessionLaunchedEvent.AddNonSerializedListener(this, OnSessionLaunched);
@@ -36,22 +39,28 @@ namespace Bannerlord.LordLife.MarryAnyone
         {
             // Save/load courtship completed heroes
             dataStore.SyncData("_marryAnyoneCourtshipCompleted", ref _savedCourtshipCompletedHeroes);
+            
+            // Save/load ex-spouses
+            dataStore.SyncData("_marryAnyonePlayerExSpouses", ref _savedPlayerExSpouses);
 
             // After loading, restore the data to the static helper
             if (dataStore.IsLoading)
             {
                 MarryAnyoneRomanceHelper.SetCompletedCourtshipHeroes(_savedCourtshipCompletedHeroes);
+                MarryAnyoneRomanceHelper.SetPlayerExSpouses(_savedPlayerExSpouses);
             }
             // Before saving, get the data from the static helper
             else if (dataStore.IsSaving)
             {
                 _savedCourtshipCompletedHeroes = MarryAnyoneRomanceHelper.GetCompletedCourtshipHeroes().ToList();
+                _savedPlayerExSpouses = MarryAnyoneRomanceHelper.GetPlayerExSpouses().ToList();
             }
         }
 
         private void OnSessionLaunched(CampaignGameStarter campaignGameStarter)
         {
             AddMarryAnyoneDialogues(campaignGameStarter);
+            AddDivorceDialogues(campaignGameStarter);
             Debug.Print("[LordLife:MarryAnyone] Diálogos de casamento registrados.");
         }
 
@@ -525,6 +534,139 @@ namespace Bannerlord.LordLife.MarryAnyone
             );
 
             Debug.Print($"[LordLife:MarryAnyone] Jogador casou com {conversationHero.Name} ({heroType}).");
+        }
+
+        /// <summary>
+        /// Adds divorce dialogue options when talking to current spouse.
+        /// </summary>
+        private void AddDivorceDialogues(CampaignGameStarter campaignGameStarter)
+        {
+            // Player initiates divorce conversation
+            campaignGameStarter.AddPlayerLine(
+                "marry_anyone_divorce_initiate",
+                "hero_main_options",
+                "marry_anyone_divorce_response",
+                "{=marry_anyone_divorce_initiate}Precisamos conversar sobre nosso casamento...",
+                DivorcePossibleCondition,
+                null,
+                100,
+                null,
+                null);
+
+            // Spouse responds to divorce initiation
+            campaignGameStarter.AddDialogLine(
+                "marry_anyone_divorce_response",
+                "marry_anyone_divorce_response",
+                "marry_anyone_divorce_options",
+                "{=marry_anyone_divorce_response}O que você quer dizer? O que há de errado?",
+                null,
+                null,
+                100,
+                null);
+
+            // Player proposes divorce/separation
+            campaignGameStarter.AddPlayerLine(
+                "marry_anyone_divorce_propose",
+                "marry_anyone_divorce_options",
+                "marry_anyone_divorce_confirm",
+                "{=marry_anyone_divorce_propose}Acho que deveríamos nos separar. Nosso casamento não está funcionando.",
+                null,
+                null,
+                100,
+                null,
+                null);
+
+            // Player cancels divorce conversation
+            campaignGameStarter.AddPlayerLine(
+                "marry_anyone_divorce_cancel",
+                "marry_anyone_divorce_options",
+                "hero_main_options",
+                "{=marry_anyone_divorce_cancel}Esquece, não é nada importante.",
+                null,
+                null,
+                100,
+                null,
+                null);
+
+            // Spouse responds to divorce proposal
+            campaignGameStarter.AddDialogLine(
+                "marry_anyone_divorce_confirm_response",
+                "marry_anyone_divorce_confirm",
+                "marry_anyone_divorce_final",
+                "{=marry_anyone_divorce_confirm_response}Se é isso que você quer... Que assim seja. Nossos caminhos se separam aqui.",
+                null,
+                null,
+                100,
+                null);
+
+            // Player confirms divorce
+            campaignGameStarter.AddPlayerLine(
+                "marry_anyone_divorce_finalize",
+                "marry_anyone_divorce_final",
+                "close_window",
+                "{=marry_anyone_divorce_finalize}Sim, é melhor assim. Adeus.",
+                null,
+                DivorceConsequence,
+                100,
+                null,
+                null);
+
+            // Player backs out at last moment
+            campaignGameStarter.AddPlayerLine(
+                "marry_anyone_divorce_abort",
+                "marry_anyone_divorce_final",
+                "hero_main_options",
+                "{=marry_anyone_divorce_abort}Espere, eu estava sendo precipitado. Vamos tentar de novo.",
+                null,
+                null,
+                100,
+                null,
+                null);
+        }
+
+        /// <summary>
+        /// Condition for divorce dialogue - player must be married to the conversation hero.
+        /// </summary>
+        private bool DivorcePossibleCondition()
+        {
+            Hero conversationHero = Hero.OneToOneConversationHero;
+            Hero player = Hero.MainHero;
+
+            if (conversationHero == null || player == null)
+            {
+                return false;
+            }
+
+            // Can only divorce if talking to current spouse
+            return player.Spouse == conversationHero;
+        }
+
+        /// <summary>
+        /// Executes the divorce and updates game state.
+        /// </summary>
+        private void DivorceConsequence()
+        {
+            Hero conversationHero = Hero.OneToOneConversationHero;
+            
+            if (conversationHero == null)
+            {
+                return;
+            }
+
+            string heroName = conversationHero.Name?.ToString() ?? "Unknown";
+            
+            // Execute divorce
+            MarryAnyoneRomanceHelper.DivorcePlayer();
+
+            int penalty = MarryAnyoneRomanceHelper.GetDivorceRelationshipPenalty();
+            InformationManager.DisplayMessage(
+                new InformationMessage(
+                    $"Você se divorciou de {heroName}. ({penalty} de relacionamento)",
+                    Colors.Red
+                )
+            );
+
+            Debug.Print($"[LordLife:MarryAnyone] Jogador se divorciou de {heroName}.");
         }
     }
 }
